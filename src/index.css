@@ -1,0 +1,22 @@
+@import url("https://fonts.cdnfonts.com/css/itc-avant-garde-gothic-pro");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+  }
+
+  body {
+    @apply bg-black text-white font-sans antialiased;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
