@@ -2,7 +2,8 @@
 export default {
   content: [
     "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
+    "./src/App.tsx",
+    "./src/site/**/*.{ts,tsx}",
   ],
   theme: {
     extend: {
@@ -16,18 +17,8 @@ export default {
         }
       },
       fontFamily: {
-        sans: ['"ITC Avant Garde Gothic Pro"', 'sans-serif'],
-        inter: ['Inter', 'sans-serif'],
+        sans: ['"Inter Tight"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
-      animation: {
-        marquee: 'marquee 35s linear infinite',
-      },
-      keyframes: {
-        marquee: {
-          '0%': { transform: 'translateX(0)' },
-          '100%': { transform: 'translateX(-50%)' },
-        }
-      }
     },
   },
   plugins: [],

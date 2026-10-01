@@ -30,7 +30,10 @@
         }
     },
     "include": [
-        "src"
+        "src/main.tsx",
+        "src/App.tsx",
+        "src/site",
+        "src/vite-env.d.ts"
     ],
     "references": [
         {

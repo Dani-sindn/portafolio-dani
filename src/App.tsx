@@ -1,19 +1,46 @@
-import { Hero } from "@/components/features/Hero";
-import { CapabilitiesSection } from "./components/CapabilitiesSection";
-import { FinalCTA } from "./components/FinalCTA";
-import heroImage from "@/assets/hero-portrait.png";
+import { PaletteProvider } from "./site/palette";
+import { LangProvider, LanguageModal } from "./site/i18n";
+import { usePath } from "./site/router";
+import { Hero } from "./site/Hero";
+import { Manifesto } from "./site/Manifesto";
+import { Inspiration } from "./site/Inspiration";
+import { Capabilities } from "./site/Capabilities";
+import { Featured } from "./site/Featured";
+import { LabTeaser } from "./site/Playground";
+import { LabPage } from "./site/lab/LabPage";
+import { Contact, Experience, Nav } from "./site/Chrome";
+
+function Home() {
+  return (
+    <main>
+      <Hero />
+      <Manifesto />
+      <Inspiration />
+      <Capabilities />
+      <Featured />
+      <Experience />
+      <LabTeaser />
+    </main>
+  );
+}
+
+function Routes() {
+  const path = usePath();
+  const lab = path.match(/^\/lab(?:\/([\w-]+))?\/?$/);
+  return lab ? <LabPage slug={lab[1]} /> : <Home />;
+}
 
 export default function App() {
   return (
-    <div className="bg-black min-h-screen font-sans text-white selection:bg-white/20">
-      {/* Hero Section with Particle Effect */}
-      <Hero imageSrc={heroImage} />
-
-      {/* Capabilities Overview with Brand Slider */}
-      <CapabilitiesSection />
-
-      {/* Final CTA / Footer */}
-      <FinalCTA />
-    </div>
+    <LangProvider>
+      <PaletteProvider>
+        <div id="top" className="min-h-screen bg-black text-white selection:bg-[var(--accent)] selection:text-black">
+          <Nav />
+          <Routes />
+          <Contact />
+          <LanguageModal />
+        </div>
+      </PaletteProvider>
+    </LangProvider>
   );
 }

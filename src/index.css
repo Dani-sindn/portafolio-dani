@@ -1,22 +1,92 @@
-@import url("https://fonts.cdnfonts.com/css/itc-avant-garde-gothic-pro");
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 0 0% 0%;
-    --foreground: 0 0% 100%;
+    --accent: #3d8bff;
+    --accent-2: #a1d3ff;
+    --surface: #0b1220;
+    color-scheme: dark;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
   }
 
   body {
-    @apply bg-black text-white font-sans antialiased;
+    @apply bg-black font-sans text-white antialiased;
+    overflow-x: clip;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
   }
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
+@layer components {
+  .display {
+    font-family: "Instrument Serif", ui-serif, Georgia, serif;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+  }
+
+  .label {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .glass {
+    background: rgb(10 10 10 / 0.55);
+    border: 1px solid rgb(255 255 255 / 0.12);
+    backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+  }
+
+  .btn {
+    @apply inline-flex items-center gap-2 rounded-full border border-white/20 px-5 py-2.5 text-sm text-white transition-colors duration-300 hover:border-white/50 hover:bg-white/5;
+  }
+  .btn-sm {
+    @apply px-3 py-1.5;
+  }
+  .btn-accent {
+    @apply border-transparent text-black hover:bg-white;
+    background: var(--accent);
+  }
+
+  .lab-card {
+    @apply rounded-[28px] border border-white/10 p-5 sm:p-8;
+    background: linear-gradient(160deg, color-mix(in srgb, var(--surface) 80%, transparent), rgb(255 255 255 / 0.02));
+  }
+
+  .range {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 6px;
+    border-radius: 999px;
+    background: rgb(255 255 255 / 0.18);
+    accent-color: var(--accent);
+  }
+  .range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    background: var(--accent);
+    border: 3px solid #000;
+    cursor: grab;
+  }
+  .range::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    background: var(--accent);
+    border: 3px solid #000;
+    cursor: grab;
   }
 }
