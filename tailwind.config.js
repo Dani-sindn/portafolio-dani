@@ -2,8 +2,7 @@
 export default {
   content: [
     "./index.html",
-    "./src/App.tsx",
-    "./src/site/**/*.{ts,tsx}",
+    "./src/**/*.{ts,tsx}",
   ],
   theme: {
     extend: {
