@@ -1,9 +1,8 @@
-import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
-import { ArrowUpRight, CalendarClock, Check, MessageCircle } from "lucide-react";
+import { useMemo, useState, type FormEvent } from "react";
+import { track } from "@vercel/analytics";
+import { ArrowUpRight, CalendarClock, Check } from "lucide-react";
 import { profile } from "./content";
 import { useLang } from "./i18n";
-import { Link, usePath } from "./router";
 
 const TIMES = ["09:00", "11:00", "15:00", "17:00"];
 
@@ -57,6 +56,7 @@ export function Booking() {
     const when = `${cap(fmt.format(days[day]))} · ${time} (GMT-5)`;
     const body = [`${typeTitle}`, when, "", message, "", `— ${name}`, email].join("\n");
     const href = `mailto:${profile.email}?subject=${encodeURIComponent(`${b.subject}: ${typeTitle}`)}&body=${encodeURIComponent(body)}`;
+    track("booking_request", { type, time });
     window.location.href = href;
     setSent(true);
   };
@@ -134,90 +134,3 @@ export function Booking() {
   );
 }
 
-/**
- * Floating contact button: a quiet circle that stretches into "I'm interested!" while the page
- * moves (and on hover), then settles back. Hidden at the very top and while the booking section is visible.
- */
-export function FloatingCta() {
-  const { t } = useLang();
-  const path = usePath();
-  const [visible, setVisible] = useState(false);
-  const [moving, setMoving] = useState(false);
-  const [hover, setHover] = useState(false);
-  const idle = useRef<number>();
-
-  useEffect(() => {
-    let raf = 0;
-    const check = () => {
-      raf = 0;
-      const agenda = document.getElementById("agenda")?.getBoundingClientRect();
-      const agendaInView = agenda ? agenda.top < window.innerHeight * 0.8 && agenda.bottom > 0 : false;
-      const threshold = path === "/" ? window.innerHeight * 0.6 : 120;
-      setVisible(window.scrollY > threshold && !agendaInView);
-    };
-    const onScroll = () => {
-      if (!raf) raf = requestAnimationFrame(check);
-      setMoving(true);
-      window.clearTimeout(idle.current);
-      idle.current = window.setTimeout(() => setMoving(false), 1400);
-    };
-    check();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => {
-      cancelAnimationFrame(raf);
-      window.clearTimeout(idle.current);
-      window.removeEventListener("scroll", onScroll);
-    };
-  }, [path]);
-
-  const expanded = moving || hover;
-
-  return (
-    <AnimatePresence>
-      {visible && (
-        <motion.div
-          initial={{ opacity: 0, y: 24, scale: 0.8 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 24, scale: 0.8 }}
-          transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-          className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] right-4 z-40 sm:right-6"
-        >
-          <Link
-            href="/#agenda"
-            aria-label={t.cta.aria}
-            onMouseEnter={() => setHover(true)}
-            onMouseLeave={() => setHover(false)}
-            onFocus={() => setHover(true)}
-            onBlur={() => setHover(false)}
-            className="block"
-          >
-            <motion.span
-              layout
-              transition={{ type: "spring", stiffness: 380, damping: 32 }}
-              className="flex h-14 items-center overflow-hidden rounded-full bg-[var(--accent)] text-black shadow-[0_12px_40px_-8px_color-mix(in_srgb,var(--accent)_70%,transparent)]"
-              style={{ paddingInline: expanded ? 20 : 0, width: expanded ? "auto" : 56, justifyContent: "center" }}
-            >
-              <motion.span layout className="flex h-14 w-6 shrink-0 items-center justify-center">
-                <MessageCircle size={22} strokeWidth={2.2} />
-              </motion.span>
-              <AnimatePresence initial={false}>
-                {expanded && (
-                  <motion.span
-                    key="label"
-                    initial={{ opacity: 0, x: -6 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -6 }}
-                    transition={{ duration: 0.2 }}
-                    className="ml-2 whitespace-nowrap text-sm font-semibold"
-                  >
-                    {t.cta.label}
-                  </motion.span>
-                )}
-              </AnimatePresence>
-            </motion.span>
-          </Link>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
-}

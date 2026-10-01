@@ -9,9 +9,13 @@ import { Capabilities } from "./site/Capabilities";
 import { Featured } from "./site/Featured";
 import { LabTeaser } from "./site/Playground";
 import { Contact, Experience, Nav } from "./site/Chrome";
-import { Booking, FloatingCta } from "./site/Booking";
+import { Booking } from "./site/Booking";
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 
 // The Lab is its own chunk: visitors who never open it don't download it.
+// GSAP-powered and only shown after the hero, so it loads in the background.
+const TalkButton = lazy(() => import("./site/TalkButton").then((m) => ({ default: m.TalkButton })));
 const LabPage = lazy(() => import("./site/lab/LabPage").then((m) => ({ default: m.LabPage })));
 
 function Home() {
@@ -49,9 +53,14 @@ export default function App() {
           <Nav />
           <Routes />
           <Contact />
-          <FloatingCta />
+          <Suspense fallback={null}>
+            <TalkButton />
+          </Suspense>
           <LanguageModal />
         </div>
+        {/* Vercel Web Analytics (cookieless) + Speed Insights. They only report once enabled in the Vercel dashboard. */}
+        <Analytics />
+        <SpeedInsights />
       </PaletteProvider>
     </LangProvider>
   );

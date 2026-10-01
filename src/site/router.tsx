@@ -1,4 +1,4 @@
-import { useEffect, useState, type AnchorHTMLAttributes, type MouseEvent } from "react";
+import { forwardRef, useEffect, useState, type AnchorHTMLAttributes, type MouseEvent } from "react";
 
 // Tiny History-API router: the site only has "/", "/lab" and "/lab/:slug".
 
@@ -33,7 +33,7 @@ export function usePath() {
 }
 
 /** Anchor that routes client-side for internal paths ("/lab", "/#work"). */
-export function Link({ href = "/", onClick, ...rest }: AnchorHTMLAttributes<HTMLAnchorElement>) {
+export const Link = forwardRef<HTMLAnchorElement, AnchorHTMLAttributes<HTMLAnchorElement>>(function Link({ href = "/", onClick, ...rest }, ref) {
   const handle = (e: MouseEvent<HTMLAnchorElement>) => {
     onClick?.(e);
     if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
@@ -42,5 +42,5 @@ export function Link({ href = "/", onClick, ...rest }: AnchorHTMLAttributes<HTML
     e.preventDefault();
     navigate(href);
   };
-  return <a href={href} onClick={handle} {...rest} />;
-}
+  return <a ref={ref} href={href} onClick={handle} {...rest} />;
+});
