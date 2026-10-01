@@ -5,10 +5,12 @@ import { useEffect, useState, type AnchorHTMLAttributes, type MouseEvent } from 
 const EVENT = "dc:navigate";
 
 export function navigate(to: string) {
-  if (to === window.location.pathname + window.location.hash) return;
   const [path, hash] = to.split("#");
-  window.history.pushState(null, "", to);
-  window.dispatchEvent(new Event(EVENT));
+  // Same URL (e.g. tapping the same anchor twice): skip the history entry but still scroll.
+  if (to !== window.location.pathname + window.location.hash) {
+    window.history.pushState(null, "", to);
+    window.dispatchEvent(new Event(EVENT));
+  }
   requestAnimationFrame(() => {
     const el = hash ? document.getElementById(hash) : null;
     if (el) el.scrollIntoView({ behavior: "instant" as ScrollBehavior });

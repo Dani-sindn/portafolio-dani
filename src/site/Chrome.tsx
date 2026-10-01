@@ -1,13 +1,30 @@
-import { ArrowUpRight, Github, Instagram, Linkedin, Mail } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import { ArrowUpRight, Github, Instagram, Linkedin, Mail, Menu, X } from "lucide-react";
 import { profile } from "./content";
 import { palettes, usePalette } from "./palette";
 import { useLang } from "./i18n";
-import { Link, usePath } from "./router";
+import { Link, navigate, usePath } from "./router";
 
 export function Nav() {
   const { palette, cycle } = usePalette();
   const { t, lang, setLang } = useLang();
-  const onLab = usePath().startsWith("/lab");
+  const path = usePath();
+  const onLab = path.startsWith("/lab");
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  // Close the mobile menu on navigation and with Escape; lock page scroll while it's open.
+  useEffect(() => setMenuOpen(false), [path]);
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setMenuOpen(false);
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [menuOpen]);
 
   const links = [
     { href: "/#about", label: t.nav.about },
@@ -21,13 +38,9 @@ export function Nav() {
       <nav className="glass mx-auto flex max-w-7xl items-center justify-between gap-2 rounded-full py-2 pl-4 pr-2 text-sm">
         <Link href="/" className="display text-lg italic text-white">DC</Link>
 
-        <div className="flex items-center gap-4 text-white/70 sm:gap-6">
+        <div className="hidden items-center gap-6 text-white/70 md:flex">
           {links.map((l) => (
-            <Link
-              key={l.href}
-              href={l.href}
-              className={`${l.active ? "text-[var(--accent)]" : "hover:text-white"} ${l.href === "/lab" ? "" : "hidden md:inline"}`}
-            >
+            <Link key={l.href} href={l.href} className={l.active ? "text-[var(--accent)]" : "hover:text-white"}>
               {l.label}
             </Link>
           ))}
@@ -60,8 +73,56 @@ export function Nav() {
             </span>
             <span className="label hidden sm:inline">{palettes.some((p) => p.id === palette.id) ? palette.name : "Custom"}</span>
           </button>
+          <button
+            type="button"
+            onClick={() => setMenuOpen((o) => !o)}
+            aria-expanded={menuOpen}
+            aria-controls="mobile-menu"
+            aria-label={menuOpen ? t.nav.close : t.nav.menu}
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/15 md:hidden"
+          >
+            {menuOpen ? <X size={18} /> : <Menu size={18} />}
+          </button>
         </div>
       </nav>
+
+      <AnimatePresence>
+        {menuOpen && (
+          <motion.div
+            id="mobile-menu"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            className="fixed inset-0 -z-10 flex flex-col justify-end bg-black/90 px-6 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-28 backdrop-blur-xl md:hidden"
+          >
+            <ul className="space-y-2">
+              {[...links, { href: "/#agenda", label: t.nav.agenda, active: false }].map((l, i) => (
+                <motion.li
+                  key={l.href}
+                  initial={{ opacity: 0, y: 24 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.05 + i * 0.05, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  <Link
+                    href={l.href}
+                    onClick={(e) => {
+                      // Unlock scrolling before jumping, otherwise the anchor scroll is swallowed.
+                      e.preventDefault();
+                      setMenuOpen(false);
+                      requestAnimationFrame(() => requestAnimationFrame(() => navigate(l.href)));
+                    }}
+                    className={`display flex items-baseline justify-between border-b border-white/10 py-3 text-5xl ${l.active ? "italic text-[var(--accent)]" : "text-white"}`}
+                  >
+                    {l.label}
+                    <span className="label text-white/35">0{i + 1}</span>
+                  </Link>
+                </motion.li>
+              ))}
+            </ul>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   );
 }

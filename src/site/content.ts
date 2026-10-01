@@ -47,7 +47,7 @@ export interface Job {
 }
 
 const en = {
-  nav: { about: "About", work: "Work", lab: "Lab", contact: "Contact", palette: "Change palette" },
+  nav: { about: "About", work: "Work", lab: "Lab", contact: "Contact", agenda: "Let's talk", palette: "Change palette", menu: "Open menu", close: "Close menu" },
   langModal: {
     title: "How would you like to read?",
     body: "You can switch anytime from the menu.",
@@ -63,6 +63,8 @@ const en = {
     round: "Round particles",
     scroll: "Hover to play · scroll to scatter ↓",
     ideaSpace: "My space for ideas",
+    scrollTouch: "Touch & drag · scroll to scatter ↓",
+    settings: "Particle settings",
     nextIn: "Next image in {s} seconds",
     prev: "Previous image",
     next: "Next image",
@@ -112,6 +114,7 @@ const en = {
     title: "Projects, talks",
     titleAccent: "and ideas in motion.",
     hint: "Scroll or drag · tap a card to open it",
+    hintTouch: "Swipe · tap a card to open it",
     open: "Open",
     close: "Close",
     items: [
@@ -306,7 +309,7 @@ const en = {
 export type Dict = typeof en;
 
 const es: Dict = {
-  nav: { about: "Sobre mí", work: "Trabajo", lab: "Lab", contact: "Contacto", palette: "Cambiar paleta" },
+  nav: { about: "Sobre mí", work: "Trabajo", lab: "Lab", contact: "Contacto", agenda: "Hablemos", palette: "Cambiar paleta", menu: "Abrir menú", close: "Cerrar menú" },
   langModal: {
     title: "¿En qué idioma quieres leer?",
     body: "Puedes cambiarlo cuando quieras desde el menú.",
@@ -322,6 +325,8 @@ const es: Dict = {
     round: "Partículas redondas",
     scroll: "Pasa el cursor · haz scroll para dispersar ↓",
     ideaSpace: "Mi espacio de ideas",
+    scrollTouch: "Toca y arrastra · haz scroll para dispersar ↓",
+    settings: "Ajustes de partículas",
     nextIn: "Siguiente imagen en {s} segundos",
     prev: "Imagen anterior",
     next: "Imagen siguiente",
@@ -371,6 +376,7 @@ const es: Dict = {
     title: "Proyectos, charlas",
     titleAccent: "e ideas en movimiento.",
     hint: "Haz scroll o arrastra · toca una tarjeta para abrirla",
+    hintTouch: "Desliza · toca una tarjeta para abrirla",
     open: "Abrir",
     close: "Cerrar",
     items: [

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, SlidersHorizontal } from "lucide-react";
 // import portrait1 from "@/assets/hero-portrait.webp";
 import portrait2 from "@/assets/hero-2.webp";
 import portrait3 from "@/assets/hero-3.webp";
@@ -11,13 +11,15 @@ interface Slide {
   src: string;
   /** Luminance (0–255) below which pixels become empty space. Raise it for photos with a grey backdrop. */
   cutoff?: number;
+  /** Horizontal focus (0–1) used when a phone crops the photo. Defaults to the center. */
+  focusX?: number;
 }
 
 /** Carousel slides. Add an image here and the particles will morph into it. */
 const SLIDES: Slide[] = [
   { src: portrait2 },
   { src: portrait3 },
-  { src: portrait4 },
+  { src: portrait4, focusX: 0.44 }, // profile faces left: keep the nose in frame
   // Hidden for now: very dark backdrop, reads poorly as particles.
   // { src: portrait1 },
 ];
@@ -69,14 +71,19 @@ function loadImage(src: string) {
 }
 
 /** Samples an image (object-fit: cover) into particle home positions + colors. */
-function sampleImage(img: HTMLImageElement, w: number, h: number, maxCount: number, cutoff = 20) {
+function sampleImage(img: HTMLImageElement, w: number, h: number, maxCount: number, cutoff = 20, focusX = 0.5) {
   // Remap so the cutoff becomes black and the remaining tones keep their full range.
   const gain = 255 / (255 - cutoff);
-  const scale = Math.max(w / img.naturalWidth, h / img.naturalHeight);
+  // Desktop: object-fit cover, centered. Portrait phones: the photo fills the top ~82% (nudged
+  // below the menu) so the face isn't hidden and the name sits on the darker lower band.
+  const phone = w < 768 && h > w;
+  const scale = phone
+    ? Math.max(w / img.naturalWidth, (h * 0.82) / img.naturalHeight)
+    : Math.max(w / img.naturalWidth, h / img.naturalHeight);
   const dw = img.naturalWidth * scale;
   const dh = img.naturalHeight * scale;
-  const dx = (w - dw) / 2;
-  const dy = (h - dh) / 2;
+  const dx = phone ? Math.min(0, Math.max(w - dw, w / 2 - focusX * dw)) : (w - dw) / 2;
+  const dy = phone ? h * 0.07 : (h - dh) / 2;
 
   // Start dense, then widen spacing until the visible count fits the budget.
   let spacing = w < 768 ? 1.8 : 1.4;
@@ -131,6 +138,12 @@ export function Hero() {
   const [quality, setQuality] = useState(1);
   const [round, setRound] = useState(true);
   const roundRef = useRef(true);
+  // Phones get a compact control bar; density/shape live behind a settings toggle.
+  const [panelOpen, setPanelOpen] = useState(false);
+  const [touch, setTouch] = useState(false);
+  useEffect(() => {
+    setTouch(window.matchMedia("(hover: none)").matches);
+  }, []);
   const densityRef = useRef(0.5);
   const [counts, setCounts] = useState<number[]>([]);
   const [ready, setReady] = useState(false);
@@ -272,7 +285,7 @@ export function Hero() {
       // Sampled once at full density; the slider only fades particles in/out.
       // The auto-quality governor trims this live on slower devices.
       const budget = mobile ? 36000 : 110000;
-      const samples = images.map((img, i) => sampleImage(img, w, h, budget, SLIDES[i].cutoff));
+      const samples = images.map((img, i) => sampleImage(img, w, h, budget, SLIDES[i].cutoff, SLIDES[i].focusX));
       N = Math.max(...samples.map((s) => s.xs.length));
 
       // Every slide gets exactly N targets; slides with fewer samples fade the extras out.
@@ -565,7 +578,7 @@ export function Hero() {
               key={src}
               src={src}
               alt={i === slide ? t.portraitAlt : ""}
-              className="absolute inset-0 h-full w-full object-cover transition-opacity duration-700"
+              className="absolute inset-0 h-full w-full object-cover transition-opacity duration-700 max-md:object-[50%_20%]"
               style={{ opacity: i === slide ? 1 : 0 }}
             />
           ))
@@ -585,6 +598,12 @@ export function Hero() {
             background: "radial-gradient(60% 80% at 50% 100%, color-mix(in srgb, var(--accent) 30%, transparent), transparent 70%)",
             opacity: "calc(var(--p, 0) * 1.3 - 0.2)",
           }}
+        />
+
+        {/* Phones: dark band behind the name so it reads over bright particles; fades as they scatter. */}
+        <div
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-[46%] bg-gradient-to-t from-black via-black/75 to-transparent md:hidden"
+          style={{ opacity: "calc(1 - var(--p, 0) * 1.6)" }}
         />
 
         {/* Idea space: the circle the particles are pushed out of (same radius as the canvas physics). */}
@@ -635,9 +654,9 @@ export function Hero() {
               </p>
             </div>
 
-            <div className="glass pointer-events-auto w-full max-w-[22rem] rounded-2xl p-4 text-sm max-md:opacity-[var(--copy,1)] max-md:group-data-[open=true]/hero:pointer-events-none md:w-auto md:min-w-[19rem]">
+            <div className="glass pointer-events-auto w-full max-w-[22rem] rounded-2xl p-2.5 text-sm max-md:opacity-[var(--copy,1)] max-md:group-data-[open=true]/hero:pointer-events-none md:w-auto md:min-w-[19rem] md:p-4">
               {SLIDES.length > 1 && (
-                <div className="mb-3 flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+                <div className="flex items-center justify-between gap-3 md:mb-3 md:border-b md:border-white/10 md:pb-3">
                   <button type="button" onClick={() => go(-1)} className="rounded-full p-1.5 text-white/70 hover:bg-white/10 hover:text-white" aria-label={t.prev}>
                     <ChevronLeft size={18} />
                   </button>
@@ -663,10 +682,21 @@ export function Hero() {
                   <button type="button" onClick={() => go(1)} className="rounded-full p-1.5 text-white/70 hover:bg-white/10 hover:text-white" aria-label={t.next}>
                     <ChevronRight size={18} />
                   </button>
+                  {!reduced && (
+                    <button
+                      type="button"
+                      onClick={() => setPanelOpen((o) => !o)}
+                      aria-expanded={panelOpen}
+                      aria-label={t.settings}
+                      className={`rounded-full p-1.5 transition-colors md:hidden ${panelOpen ? "bg-white/15 text-white" : "text-white/70 hover:bg-white/10"}`}
+                    >
+                      <SlidersHorizontal size={16} />
+                    </button>
+                  )}
                 </div>
               )}
               {!reduced && (
-                <>
+                <div className={`${panelOpen ? "mt-2.5 border-t border-white/10 px-1.5 pb-1 pt-3" : "max-md:hidden"} md:mt-0 md:border-0 md:p-0`}>
                   <div className="flex items-center justify-between gap-4">
                     <span className="display text-2xl italic text-[var(--accent-2)]">{t.tryIt}</span>
                     <span className="label tabular-nums text-white/60">{(((counts[slide] ?? 0) * densityFraction(density) * quality) / 1000).toFixed(1)}k {t.particles}</span>
@@ -688,13 +718,13 @@ export function Hero() {
                     <input type="checkbox" checked={round} onChange={(e) => setRound(e.target.checked)} className="accent-[var(--accent)]" />
                     {t.round}
                   </label>
-                </>
+                </div>
               )}
             </div>
           </div>
           {!reduced && (
-            <p className="label mt-6 text-center text-white/50" style={{ opacity: "calc(1 - var(--p, 0) * 6)" }}>
-              {t.scroll}
+            <p className="label mt-4 text-center text-white/50 md:mt-6" style={{ opacity: "calc(1 - var(--p, 0) * 6)" }}>
+              {touch ? t.scrollTouch : t.scroll}
             </p>
           )}
         </div>

@@ -302,7 +302,7 @@ export function Featured() {
           {t.title} <em className="text-[var(--accent-2)]">{t.titleAccent}</em>
         </h2>
       </div>
-      <p className="label text-white/45">{t.hint}</p>
+      <p className="label text-white/45">{pinned ? t.hint : t.hintTouch}</p>
     </div>
   );
 
