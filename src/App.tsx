@@ -1,4 +1,5 @@
 import { lazy, Suspense } from "react";
+import { Analytics } from "@vercel/analytics/react";
 import { PaletteProvider } from "./site/palette";
 import { LangProvider, LanguageModal } from "./site/i18n";
 import { usePath } from "./site/router";
@@ -52,6 +53,7 @@ export default function App() {
           <FloatingCta />
           <LanguageModal />
         </div>
+        <Analytics />
       </PaletteProvider>
     </LangProvider>
   );
