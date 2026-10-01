@@ -76,7 +76,7 @@ export function Experience() {
         <p className="label text-[var(--accent)]">( {t.experience.label} )</p>
         <ol className="mt-8 divide-y divide-white/10 border-y border-white/10">
           {jobs.map((job) => (
-            <li key={job.company} className="group grid gap-2 py-8 md:grid-cols-[10rem_1fr_1fr] md:gap-8">
+            <li key={`${job.company}-${job.period}`} className="group grid gap-2 py-8 md:grid-cols-[10rem_1fr_1fr] md:gap-8">
               <span className="label pt-2 text-white/50">{job.period}</span>
               <div>
                 <h3 className="display text-3xl text-white transition-colors group-hover:text-[var(--accent)] sm:text-4xl">{job.company}</h3>
@@ -86,6 +86,20 @@ export function Experience() {
             </li>
           ))}
         </ol>
+        <div className="mt-10 grid gap-6 md:grid-cols-[10rem_1fr] md:gap-8">
+          <span className="label pt-1 text-white/50">{t.experience.alsoLabel}</span>
+          <div>
+            <ul className="space-y-3">
+              {t.experience.also.map((item) => (
+                <li key={item} className="flex gap-3 text-white/75">
+                  <span className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--accent)]" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+            <p className="label mt-6 text-white/45">{t.experience.education}</p>
+          </div>
+        </div>
       </div>
     </section>
   );

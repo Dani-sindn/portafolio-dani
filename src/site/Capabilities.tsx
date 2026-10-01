@@ -4,7 +4,7 @@ import type { Capability } from "./content";
 import { useLang } from "./i18n";
 
 // Each card gets a deeper mix of the accent — the stack reads as layers of depth.
-const tints = [8, 18, 30, 100];
+const tints = [10, 26, 100];
 
 function Card({ cap, i, total, progress }: { cap: Capability; i: number; total: number; progress: MotionValue<number> }) {
   const targetScale = 1 - (total - 1 - i) * 0.045;
@@ -17,7 +17,7 @@ function Card({ cap, i, total, progress }: { cap: Capability; i: number; total: 
         style={{
           scale,
           transformOrigin: "top center",
-          background: `color-mix(in srgb, var(--accent) ${tints[i]}%, var(--surface))`,
+          background: `color-mix(in srgb, var(--accent) ${solid ? 100 : (tints[i] ?? 20)}%, var(--surface))`,
         }}
         className={`relative w-full max-w-5xl overflow-hidden rounded-[28px] border border-white/10 p-6 shadow-[0_-30px_80px_-20px_rgba(0,0,0,0.8)] sm:p-10 md:p-14 ${solid ? "text-black" : "text-white"}`}
       >
@@ -25,7 +25,7 @@ function Card({ cap, i, total, progress }: { cap: Capability; i: number; total: 
           <span className={`label ${solid ? "text-black/60" : "text-white/50"}`}>{cap.index} / 0{total}</span>
           <span className="display text-[clamp(4rem,12vw,9rem)] leading-none opacity-20">{cap.index}</span>
         </div>
-        <h3 className="display mt-2 text-[clamp(2.4rem,6vw,4.8rem)] leading-[0.95]">{cap.title}</h3>
+        <h3 className="display mt-2 max-w-3xl text-[clamp(2rem,4.6vw,3.8rem)] leading-[0.98]">{cap.title}</h3>
         <p className={`mt-5 max-w-xl text-base sm:text-lg ${solid ? "text-black/75" : "text-white/75"}`}>{cap.body}</p>
         <ul className="mt-8 flex flex-wrap gap-2">
           {cap.tags.map((t) => (
@@ -53,6 +53,7 @@ export function Capabilities() {
         <h2 className="display mt-4 text-[clamp(2.6rem,7vw,5.5rem)] leading-[0.95] text-white">
           {t.capabilities.title} <em className="text-[var(--accent-2)]">{t.capabilities.titleAccent}</em>
         </h2>
+        <p className="mt-6 max-w-2xl text-lg leading-relaxed text-white/70 sm:text-xl">{t.capabilities.intro}</p>
       </div>
       {capabilities.map((cap, i) => (
         <Card key={cap.index} cap={cap} i={i} total={capabilities.length} progress={scrollYProgress} />

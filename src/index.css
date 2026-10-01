@@ -59,6 +59,10 @@
     background: var(--accent);
   }
 
+  .field {
+    @apply w-full rounded-2xl border border-white/15 bg-black/40 px-4 py-3 text-white outline-none transition-colors placeholder:text-white/40 focus:border-[var(--accent)];
+  }
+
   .lab-card {
     @apply rounded-[28px] border border-white/10 p-5 sm:p-8;
     background: linear-gradient(160deg, color-mix(in srgb, var(--surface) 80%, transparent), rgb(255 255 255 / 0.02));
@@ -88,5 +92,33 @@
     background: var(--accent);
     border: 3px solid #000;
     cursor: grab;
+  }
+}
+
+/* Work gallery cover animations */
+@keyframes dash {
+  to {
+    stroke-dashoffset: -140;
+  }
+}
+@keyframes pulse-ring {
+  0%,
+  100% {
+    scale: 0.96;
+    opacity: 0.6;
+  }
+  50% {
+    scale: 1.04;
+    opacity: 1;
+  }
+}
+@keyframes float-dot {
+  to {
+    translate: 0 -14px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #work * {
+    animation: none !important;
   }
 }

@@ -1,190 +1,347 @@
-import { AnimatePresence, motion, useInView } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
-import { ArrowUpRight, BadgeCheck, MapPin } from "lucide-react";
-import type { Step } from "./content";
+import { AnimatePresence, motion, useScroll, useTransform } from "framer-motion";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type PointerEvent, type ReactNode } from "react";
+import { ArrowUpRight, BadgeCheck, X } from "lucide-react";
+import type { WorkItem } from "./content";
 import { useLang } from "./i18n";
+import { Link } from "./router";
 
-// Demo points shown inside the phone mockup (illustrative, not real locations).
+/* ---------- Generative covers (no photos needed; they follow the active palette) ---------- */
+
+/** Moves a cover layer with the card's pointer position (--dx/--dy set on the card). */
+const depth = (px: number) => ({
+  transform: `translate3d(calc(var(--dx, 0) * ${px}px), calc(var(--dy, 0) * ${px}px), 0)`,
+  transition: "transform 0.3s ease-out",
+});
+
+function ZaloCover() {
+  return (
+    <div className="absolute inset-0">
+      <div className="absolute -right-10 -top-10 h-2/3 w-2/3 rounded-full blur-3xl" style={{ background: "var(--accent)", opacity: 0.35, ...depth(-10) }} />
+      <svg viewBox="0 0 400 300" className="absolute inset-0 h-full w-full" style={depth(8)} aria-hidden="true">
+        <path d="M70 215 C 150 40, 260 40, 330 110" fill="none" stroke="var(--accent-2)" strokeWidth="2" strokeDasharray="6 8" className="animate-[dash_6s_linear_infinite]" />
+        <circle cx="70" cy="215" r="7" fill="var(--accent)" />
+        <circle cx="330" cy="110" r="7" fill="var(--accent)" />
+        <circle cx="70" cy="215" r="18" fill="none" stroke="var(--accent)" strokeOpacity="0.4" className="origin-[70px_215px] animate-[ping_2.4s_ease-out_infinite]" />
+      </svg>
+      <span className="display absolute bottom-[12%] left-[8%] text-[clamp(3rem,7vw,5rem)] leading-none text-white" style={depth(18)}>MX</span>
+      <span className="display absolute right-[8%] top-[10%] text-[clamp(3rem,7vw,5rem)] italic leading-none text-[var(--accent)]" style={depth(26)}>DO</span>
+    </div>
+  );
+}
+
+function ElBosqueCover() {
+  return (
+    <div className="absolute inset-0 flex items-center justify-center">
+      {[0, 1, 2, 3].map((i) => (
+        <span
+          key={i}
+          className="absolute rounded-full border"
+          style={{
+            width: `${30 + i * 18}%`,
+            aspectRatio: "1",
+            borderColor: `color-mix(in srgb, var(--accent) ${70 - i * 15}%, transparent)`,
+            animation: `pulse-ring 3.2s ease-in-out ${i * 0.35}s infinite`,
+            ...depth(6 + i * 6),
+          }}
+        />
+      ))}
+      <span className="h-4 w-4 rounded-full bg-[var(--accent-2)]" style={depth(30)} />
+      <span className="label absolute bottom-[10%] text-white/60" style={depth(14)}>Creación Digital</span>
+    </div>
+  );
+}
+
 const pins = [
-  { x: 22, y: 30, ok: true }, { x: 64, y: 22, ok: false }, { x: 48, y: 48, ok: true },
-  { x: 78, y: 58, ok: false }, { x: 30, y: 66, ok: true }, { x: 58, y: 78, ok: false },
-  { x: 14, y: 50, ok: false }, { x: 76, y: 36, ok: true },
+  { x: 24, y: 34 }, { x: 58, y: 26 }, { x: 44, y: 56 }, { x: 72, y: 62 }, { x: 30, y: 74 },
 ];
 
-const points = [
-  { name: "Punto 01 · Usaquén", need: "Agua · Urgente", tone: "urgent", crowd: "Abierto", ago: "hace 3 min" },
-  { name: "Punto 02 · Toberín", need: "Mantas · Normal", tone: "normal", crowd: "Lleno", ago: "hace 12 min" },
-  { name: "Punto 03 · Suba", need: "Ropa · Ya no recibe", tone: "closed", crowd: "Abierto", ago: "hace 1 h" },
-];
+function RedAcopioCover() {
+  return (
+    <div className="absolute inset-0">
+      <svg className="absolute inset-0 h-full w-full opacity-25" aria-hidden="true" style={depth(-6)}>
+        <defs>
+          <pattern id="work-grid" width="26" height="26" patternUnits="userSpaceOnUse" patternTransform="rotate(12)">
+            <path d="M26 0H0V26" fill="none" stroke="white" strokeWidth="0.6" />
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#work-grid)" />
+      </svg>
+      {pins.map((p, i) => (
+        <span
+          key={i}
+          className="absolute flex -translate-x-1/2 -translate-y-full items-center gap-1 rounded-full bg-[var(--accent)] px-2 py-1 text-[10px] font-medium text-black"
+          style={{ left: `${p.x}%`, top: `${p.y}%`, ...depth(10 + i * 4) }}
+        >
+          <BadgeCheck size={11} /> {String(i + 1).padStart(2, "0")}
+        </span>
+      ))}
+    </div>
+  );
+}
 
-const toneClass: Record<string, string> = {
-  urgent: "bg-[var(--accent)] text-black",
-  normal: "bg-white/15 text-white",
-  closed: "bg-white/5 text-white/40 line-through",
+function MoreCover() {
+  return (
+    <div className="absolute inset-0 flex items-center justify-center">
+      {Array.from({ length: 14 }, (_, i) => (
+        <span
+          key={i}
+          className="absolute h-1.5 w-1.5 rounded-full bg-[var(--accent-2)]"
+          style={{
+            left: `${(i * 37) % 90 + 5}%`,
+            top: `${(i * 53) % 80 + 10}%`,
+            opacity: 0.35 + ((i * 13) % 6) / 10,
+            animation: `float-dot ${4 + (i % 4)}s ease-in-out ${i * 0.2}s infinite alternate`,
+            ...depth(8 + (i % 5) * 6),
+          }}
+        />
+      ))}
+      <span className="display text-[clamp(7rem,16vw,11rem)] leading-none text-[var(--accent)]" style={depth(24)}>+</span>
+    </div>
+  );
+}
+
+const covers: Record<WorkItem["id"], () => ReactNode> = {
+  zalo: ZaloCover,
+  elbosque: ElBosqueCover,
+  redacopio: RedAcopioCover,
+  more: MoreCover,
 };
 
-function PhoneScreen({ step }: { step: number }) {
-  if (step <= 1) {
-    return (
-      <div className="relative h-full w-full bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.06),transparent_60%)]">
-        {/* faux street grid */}
-        <svg className="absolute inset-0 h-full w-full opacity-20" aria-hidden="true">
-          <defs>
-            <pattern id="grid" width="28" height="28" patternUnits="userSpaceOnUse" patternTransform="rotate(12)">
-              <path d="M28 0H0V28" fill="none" stroke="white" strokeWidth="0.6" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#grid)" />
-        </svg>
-        {pins.map((p, i) => {
-          const hidden = step === 1 && !p.ok;
-          return (
-            <motion.div
-              key={i}
-              className="absolute -translate-x-1/2 -translate-y-full"
-              style={{ left: `${p.x}%`, top: `${p.y}%` }}
-              animate={{ opacity: hidden ? 0 : 1, scale: hidden ? 0.4 : step === 1 ? 1.15 : 1 }}
-              transition={{ duration: 0.5, delay: i * 0.04 }}
-            >
-              <div className={`flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-medium ${step === 1 ? "bg-[var(--accent)] text-black" : "bg-white/20 text-white"}`}>
-                {step === 1 ? <BadgeCheck size={11} /> : <MapPin size={11} />}
-                {step === 1 ? "Verificado" : "?"}
-              </div>
-            </motion.div>
-          );
-        })}
-        <div className="absolute inset-x-3 bottom-3 rounded-xl bg-black/70 p-3 text-[11px] text-white/80 backdrop-blur">
-          {step === 0 ? "12 puntos sin verificar · info de redes sociales" : "4 puntos autorizados por la alcaldía"}
-        </div>
-      </div>
-    );
-  }
-
-  if (step === 2) {
-    return (
-      <div className="flex h-full flex-col gap-2 p-3">
-        <p className="label px-1 pt-1 text-white/50">Cerca de ti</p>
-        {points.map((pt, i) => (
-          <motion.div
-            key={pt.name}
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.08 }}
-            className="rounded-xl border border-white/10 bg-white/[0.04] p-3"
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-[12px] font-semibold text-white">{pt.name}</span>
-              <span className="text-[10px] text-white/40">{pt.ago}</span>
-            </div>
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${toneClass[pt.tone]}`}>{pt.need}</span>
-              <span className="rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-white/70">{pt.crowd}</span>
-            </div>
-          </motion.div>
-        ))}
-      </div>
-    );
-  }
-
+function Cover({ id, className = "" }: { id: WorkItem["id"]; className?: string }) {
+  const C = covers[id];
   return (
-    <div className="flex h-full flex-col justify-center gap-3 p-4">
-      {["Público", "Coordinador", "Admin"].map((role, i) => (
-        <motion.div
-          key={role}
-          initial={{ opacity: 0, x: -12 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: i * 0.1 }}
-          className="rounded-xl p-3"
-          style={{ background: `color-mix(in srgb, var(--accent) ${20 + i * 30}%, #111)` }}
-        >
-          <p className={`text-sm font-semibold ${i === 2 ? "text-black" : "text-white"}`}>{role}</p>
-          <p className={`text-[11px] ${i === 2 ? "text-black/70" : "text-white/60"}`}>
-            {["Ve puntos y necesidades", "Actualiza su punto en vivo", "Verifica y asigna"][i]}
-          </p>
-        </motion.div>
-      ))}
-      <div className="mt-2 rounded-xl border border-dashed border-white/20 p-3 text-center text-[11px] text-white/60">
-        git clone → tu zona → deploy
-      </div>
+    <div
+      className={`relative overflow-hidden ${className}`}
+      style={{ background: "radial-gradient(90% 90% at 30% 20%, color-mix(in srgb, var(--accent) 18%, var(--surface)), var(--surface) 70%)" }}
+    >
+      <C />
     </div>
   );
 }
 
-function StepBlock({ step, i, onActive }: { step: Step; i: number; onActive: (i: number) => void }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { margin: "-45% 0px -45% 0px" });
+/* ---------- Card + detail ---------- */
+
+function Card({ item, index, total, onOpen, openLabel }: { item: WorkItem; index: number; total: number; onOpen: () => void; openLabel: string }) {
+  const ref = useRef<HTMLButtonElement>(null);
+  const move = (e: PointerEvent<HTMLButtonElement>) => {
+    const el = ref.current;
+    if (!el || e.pointerType !== "mouse") return;
+    const r = el.getBoundingClientRect();
+    el.style.setProperty("--dx", (((e.clientX - r.left) / r.width) * 2 - 1).toFixed(3));
+    el.style.setProperty("--dy", (((e.clientY - r.top) / r.height) * 2 - 1).toFixed(3));
+  };
+  const reset = () => {
+    ref.current?.style.setProperty("--dx", "0");
+    ref.current?.style.setProperty("--dy", "0");
+  };
+
+  return (
+    <button
+      ref={ref}
+      type="button"
+      onClick={onOpen}
+      onPointerMove={move}
+      onPointerLeave={reset}
+      className="group flex h-full w-[82vw] shrink-0 snap-center flex-col overflow-hidden rounded-[28px] border border-white/10 bg-[#070707] text-left transition-[border-color,transform] duration-500 hover:border-white/30 sm:w-[26rem] md:w-[30rem]"
+      style={{
+        transform: "perspective(1200px) rotateX(calc(var(--dy, 0) * -3deg)) rotateY(calc(var(--dx, 0) * 4deg))",
+      }}
+    >
+      <Cover id={item.id} className="min-h-0 flex-1" />
+      <div className="p-5 sm:p-6">
+        <div className="flex items-center justify-between gap-3">
+          <span className="label text-[var(--accent)]">{item.kicker}</span>
+          <span className="label shrink-0 text-white/40">
+            {String(index + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
+          </span>
+        </div>
+        <h3 className="display mt-3 text-[clamp(1.9rem,3vw,2.6rem)] leading-[1] text-white">{item.title}</h3>
+        <p className="mt-3 line-clamp-2 text-white/65">{item.summary}</p>
+        <span className="mt-4 inline-flex items-center gap-1 text-sm text-white/70 transition-colors group-hover:text-[var(--accent)]">
+          {openLabel} <ArrowUpRight size={14} className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+        </span>
+      </div>
+    </button>
+  );
+}
+
+function Detail({ item, onClose, closeLabel }: { item: WorkItem; onClose: () => void; closeLabel: string }) {
+  const closeRef = useRef<HTMLButtonElement>(null);
   useEffect(() => {
-    if (inView) onActive(i);
-  }, [inView, i, onActive]);
+    closeRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [onClose]);
 
   return (
-    <div ref={ref} className="flex min-h-[80svh] items-end pb-[6svh] md:min-h-[90svh] md:items-center md:pb-0">
-      <div className={`glass rounded-2xl p-6 transition-opacity duration-500 md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-none ${inView ? "opacity-100" : "md:opacity-30"}`}>
-        <p className="label text-[var(--accent)]">0{i + 1} — {step.kicker}</p>
-        <h3 className="display mt-3 text-[clamp(2rem,4.5vw,3.6rem)] leading-[0.98] text-white">{step.title}</h3>
-        <p className="mt-4 max-w-md text-base text-white/75 sm:text-lg">{step.body}</p>
-      </div>
-    </div>
+    <motion.div
+      className="fixed inset-0 z-[90] flex items-end justify-center bg-black/75 p-0 backdrop-blur-md sm:items-center sm:p-6"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="work-detail-title"
+    >
+      <motion.article
+        initial={{ y: 60, opacity: 0, scale: 0.98 }}
+        animate={{ y: 0, opacity: 1, scale: 1 }}
+        exit={{ y: 30, opacity: 0 }}
+        transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+        onClick={(e) => e.stopPropagation()}
+        className="relative max-h-[92svh] w-full max-w-3xl overflow-y-auto rounded-t-[28px] border border-white/10 bg-[#070707] sm:rounded-[28px]"
+      >
+        <Cover id={item.id} className="aspect-[16/9]" />
+        <button
+          ref={closeRef}
+          type="button"
+          onClick={onClose}
+          className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur hover:bg-black/80"
+          aria-label={closeLabel}
+        >
+          <X size={18} />
+        </button>
+        <div className="p-6 sm:p-10">
+          <p className="label text-[var(--accent)]">
+            {item.kicker}
+            {item.year ? ` · ${item.year}` : ""}
+          </p>
+          <h3 id="work-detail-title" className="display mt-3 text-[clamp(2.4rem,6vw,4rem)] leading-[0.95] text-white">
+            {item.title}
+          </h3>
+          {item.body.map((p) => (
+            <p key={p} className="mt-5 text-base leading-relaxed text-white/75 sm:text-lg">
+              {p}
+            </p>
+          ))}
+          <ul className="mt-6 flex flex-wrap gap-2">
+            {item.tags.map((tag) => (
+              <li key={tag} className="rounded-full border border-white/15 px-3 py-1.5 text-sm text-white/70">
+                {tag}
+              </li>
+            ))}
+          </ul>
+          {item.links.length > 0 && (
+            <div className="mt-8 flex flex-wrap gap-3">
+              {item.links.map((l, i) =>
+                l.href.startsWith("/") ? (
+                  <Link key={l.href} href={l.href} onClick={onClose} className={i === 0 ? "btn btn-accent" : "btn"}>
+                    {l.label} <ArrowUpRight size={16} />
+                  </Link>
+                ) : (
+                  <a key={l.href} href={l.href} target="_blank" rel="noreferrer" className={i === 0 ? "btn btn-accent" : "btn"}>
+                    {l.label} <ArrowUpRight size={16} />
+                  </a>
+                ),
+              )}
+            </div>
+          )}
+        </div>
+      </motion.article>
+    </motion.div>
   );
 }
 
-/** Featured case study told as a scroll story: text steps drive the phone. */
+/* ---------- Section ---------- */
+
+function usePinnedGallery() {
+  const [pinned, setPinned] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 768px) and (prefers-reduced-motion: no-preference)");
+    const update = () => setPinned(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+  return pinned;
+}
+
+/**
+ * Work gallery. On desktop the section pins and vertical scroll slides the cards sideways;
+ * on phones it's a native swipe carousel. Cards open a detail sheet.
+ */
 export function Featured() {
-  const [active, setActive] = useState(0);
-  const featured = useLang().t.featured;
+  const t = useLang().t.work;
+  const [open, setOpen] = useState<WorkItem | null>(null);
+  const close = useCallback(() => setOpen(null), []);
+  const pinned = usePinnedGallery();
+
+  const sectionRef = useRef<HTMLElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const [distance, setDistance] = useState(0);
+
+  useLayoutEffect(() => {
+    const track = trackRef.current;
+    if (!track || !pinned) return;
+    const measure = () => setDistance(Math.max(0, track.scrollWidth - window.innerWidth));
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(track);
+    window.addEventListener("resize", measure);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, [pinned, t.items.length]);
+
+  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start start", "end end"] });
+  const x = useTransform(scrollYProgress, [0.05, 0.95], [0, -distance]);
+  const bar = useTransform(scrollYProgress, [0.05, 0.95], ["0%", "100%"]);
+
+  const header = (
+    <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 sm:px-8 md:flex-row md:items-end md:justify-between">
+      <div>
+        <p className="label text-[var(--accent)]">( {t.label} )</p>
+        <h2 className="display mt-4 text-[clamp(2.6rem,6.5vw,5.5rem)] leading-[0.92] text-white">
+          {t.title} <em className="text-[var(--accent-2)]">{t.titleAccent}</em>
+        </h2>
+      </div>
+      <p className="label text-white/45">{t.hint}</p>
+    </div>
+  );
+
+  const cards = t.items.map((item, i) => (
+    <Card key={item.id} item={item} index={i} total={t.items.length} onOpen={() => setOpen(item)} openLabel={t.open} />
+  ));
 
   return (
-    <section id="work" className="relative bg-black py-24">
-      <div className="mx-auto max-w-7xl px-4 sm:px-8">
-        <p className="label text-[var(--accent)]">( {featured.label} — {featured.year} )</p>
-        <div className="mt-4 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-          <h2 className="display text-[clamp(3rem,10vw,8rem)] leading-[0.88] text-white">{featured.name}</h2>
-          <div className="max-w-sm">
-            <p className="text-white/75">{featured.summary}</p>
-            <p className="label mt-3 text-white/45">{featured.role.join(" · ")}</p>
-            <a href={featured.url} target="_blank" rel="noreferrer" className="btn mt-5">
-              {featured.cta} <ArrowUpRight size={16} />
-            </a>
-          </div>
-        </div>
-
-        <div className="relative mt-10 grid gap-0 md:grid-cols-2 md:gap-16">
-          {/* Phone: sticky. On mobile it pins near the top and the steps scroll over it. */}
-          <div className="sticky top-16 z-0 flex h-[54svh] items-center justify-center md:order-2 md:top-0 md:h-[100svh]">
-            <div
-              className="relative aspect-[9/19] h-full max-h-[640px] rounded-[2.4rem] border border-white/15 bg-[#0a0a0a] p-2 shadow-2xl"
-              style={{ boxShadow: "0 40px 120px -30px color-mix(in srgb, var(--accent) 55%, transparent)" }}
-            >
-              <div className="relative h-full overflow-hidden rounded-[2rem] bg-[#050505]">
-                <div className="flex items-center justify-between px-4 pb-1 pt-3 text-[11px] text-white/70">
-                  <span className="font-semibold">RedAcopio</span>
-                  <span className="label">Norte · Bogotá</span>
-                </div>
-                <div className="relative h-[calc(100%-2rem)]">
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key={active <= 1 ? "map" : active}
-                      initial={{ opacity: 0, scale: 0.97 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 1.02 }}
-                      transition={{ duration: 0.35 }}
-                      className="absolute inset-0"
-                    >
-                      <PhoneScreen step={active} />
-                    </motion.div>
-                  </AnimatePresence>
-                </div>
-              </div>
+    <section
+      ref={sectionRef}
+      id="work"
+      className="relative bg-black"
+      style={pinned ? { height: `calc(100svh + ${distance}px)` } : undefined}
+    >
+      {pinned ? (
+        <div className="sticky top-0 flex h-[100svh] flex-col justify-center gap-10 overflow-hidden pt-20">
+          {header}
+          <motion.div ref={trackRef} style={{ x }} className="flex h-[min(60svh,560px)] w-max gap-6 px-8 will-change-transform lg:px-[max(2rem,calc((100vw-80rem)/2+2rem))]">
+            {cards}
+          </motion.div>
+          <div className="mx-auto h-px w-full max-w-7xl px-8">
+            <div className="h-px w-full bg-white/10">
+              <motion.div className="h-px bg-[var(--accent)]" style={{ width: bar }} />
             </div>
           </div>
-
-          <div className="relative z-10 md:order-1">
-            {featured.steps.map((s, i) => (
-              <StepBlock key={s.kicker} step={s} i={i} onActive={setActive} />
-            ))}
+        </div>
+      ) : (
+        <div className="py-24">
+          {header}
+          <div
+            ref={trackRef}
+            className="mt-10 flex h-[min(68svh,560px)] snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-4 [scrollbar-width:none] sm:px-8 [&::-webkit-scrollbar]:hidden"
+          >
+            {cards}
           </div>
         </div>
-      </div>
+      )}
+
+      <AnimatePresence>{open && <Detail key={open.id} item={open} onClose={close} closeLabel={t.close} />}</AnimatePresence>
     </section>
   );
 }

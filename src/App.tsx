@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { PaletteProvider } from "./site/palette";
 import { LangProvider, LanguageModal } from "./site/i18n";
 import { usePath } from "./site/router";
@@ -7,8 +8,11 @@ import { Inspiration } from "./site/Inspiration";
 import { Capabilities } from "./site/Capabilities";
 import { Featured } from "./site/Featured";
 import { LabTeaser } from "./site/Playground";
-import { LabPage } from "./site/lab/LabPage";
 import { Contact, Experience, Nav } from "./site/Chrome";
+import { Booking, FloatingCta } from "./site/Booking";
+
+// The Lab is its own chunk: visitors who never open it don't download it.
+const LabPage = lazy(() => import("./site/lab/LabPage").then((m) => ({ default: m.LabPage })));
 
 function Home() {
   return (
@@ -20,6 +24,7 @@ function Home() {
       <Featured />
       <Experience />
       <LabTeaser />
+      <Booking />
     </main>
   );
 }
@@ -27,7 +32,13 @@ function Home() {
 function Routes() {
   const path = usePath();
   const lab = path.match(/^\/lab(?:\/([\w-]+))?\/?$/);
-  return lab ? <LabPage slug={lab[1]} /> : <Home />;
+  return lab ? (
+    <Suspense fallback={<div className="min-h-screen bg-black" />}>
+      <LabPage slug={lab[1]} />
+    </Suspense>
+  ) : (
+    <Home />
+  );
 }
 
 export default function App() {
@@ -38,6 +49,7 @@ export default function App() {
           <Nav />
           <Routes />
           <Contact />
+          <FloatingCta />
           <LanguageModal />
         </div>
       </PaletteProvider>

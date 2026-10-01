@@ -1,15 +1,16 @@
 // Single source of truth for every word on the site, in both languages.
-// Fields marked TODO(linkedin) are waiting on data from Dani's LinkedIn profile.
 
 export type Lang = "en" | "es";
 
 export const profile = {
   name: "Dani Cruz",
-  // TODO(linkedin): confirm public contact email before publishing.
+  // Public contact email — left empty until Dani confirms one. Booking requests are sent here.
   email: "",
+  // Optional Calendly / Cal.com link. When set, the booking section links to it too.
+  bookingUrl: "",
   links: {
     github: "https://github.com/Dani-sindn",
-    linkedin: "", // TODO(linkedin): profile URL
+    linkedin: "https://www.linkedin.com/in/danielcruzui/",
     instagram: "https://www.instagram.com/dani_masdesign/",
   },
 };
@@ -21,10 +22,21 @@ export interface Capability {
   tags: string[];
 }
 
-export interface Step {
+export interface WorkLink {
+  label: string;
+  href: string;
+}
+
+export interface WorkItem {
+  /** Also selects the generative cover in Featured.tsx. */
+  id: "zalo" | "elbosque" | "redacopio" | "more";
   kicker: string;
   title: string;
-  body: string;
+  year?: string;
+  summary: string;
+  body: string[];
+  tags: string[];
+  links: WorkLink[];
 }
 
 export interface Job {
@@ -71,77 +83,139 @@ const en = {
   },
   capabilities: {
     label: "What I do",
-    title: "Four materials,",
-    titleAccent: "one practice.",
+    title: "I solve problems",
+    titleAccent: "from different angles.",
+    intro: "I don't always arrive at a problem from the same place. Sometimes a process needs ordering, sometimes an experience needs designing, and sometimes a team needs to learn a different way of working.",
     items: [
       {
         index: "01",
-        title: "Systems & structure",
-        body: "Design systems, information architecture and the rules that let a product grow without falling apart.",
-        tags: ["Design systems", "Information architecture", "Tokens"],
+        title: "I orchestrate processes, systems and structures",
+        body: "I connect people, tools and processes to find where things can work better. I design workflows, automations and systems that turn complexity into something actionable.",
+        tags: ["Workflows", "Automation", "Systems"],
       },
       {
         index: "02",
-        title: "Generative design",
-        body: "AI workflows built like products: prompt systems, custom datasets, LoRAs and fine-tuning for visual production at scale.",
-        tags: ["AI workflows", "Prompt systems", "Datasets", "LoRAs"],
+        title: "I design digital experiences",
+        body: "UX/UI, interfaces and visual systems. I translate needs, behaviors and goals into experiences that work and make sense.",
+        tags: ["UX/UI", "Interfaces", "Visual systems"],
       },
       {
         index: "03",
-        title: "UI & product",
-        body: "Interfaces with clear components, honest states and flows that work on the phone in your pocket first.",
-        tags: ["Components", "Interaction", "User flows", "Mobile-first"],
-      },
-      {
-        index: "04",
-        title: "Art direction & vibe coding",
-        body: "Photography, composition and mood — carried all the way to code, so the idea ships the way it was imagined.",
-        tags: ["Photography", "Editorial", "Creative coding"],
+        title: "I guide AI adoption",
+        body: "I help teams and people bring AI and vibe coding into the way they work: from understanding what's possible to building workflows and testing them on real projects.",
+        tags: ["AI", "Vibe coding", "Workshops"],
       },
     ] as Capability[],
   },
-  featured: {
-    label: "Featured work",
-    name: "RedAcopio",
-    year: "2026",
-    summary: "An open-source platform to coordinate authorized donation drop-off points during emergencies.",
-    url: "https://redacopio-ten.vercel.app",
-    role: ["Product design", "UI", "Front-end", "Data model"],
-    cta: "Visit live site",
-    steps: [
+  work: {
+    label: "Selected work",
+    title: "Projects, talks",
+    titleAccent: "and ideas in motion.",
+    hint: "Scroll or drag · tap a card to open it",
+    open: "Open",
+    close: "Close",
+    items: [
       {
-        kicker: "Context",
-        title: "An earthquake, and too much goodwill",
-        body: "After the M7.4 earthquake of 10 August 2026, northern Bogotá became a logistics hub. People wanted to help but didn't know where to go, what was needed, or whether a point was already full.",
+        id: "zalo",
+        kicker: "Talks · Dominican Republic & Mexico",
+        title: "AI & process tour with Zalo Rocks",
+        year: "2026",
+        summary: "Invited by Zalo Rocks to share how processes and AI are redefining workflows and automation.",
+        body: [
+          "Talks in the Dominican Republic and, before that, in Mexico about how processes and artificial intelligence are reshaping workflows and automation across sectors: healthcare, marketing, advertising and digital media.",
+          "The core: methodologies that use AI not as a random result generator but as an engine for logic and automation — with Figma as the tool. Sometimes even an auto layout frees up real time in someone's day.",
+        ],
+        tags: ["Speaking", "AI", "Process design", "Figma"],
+        links: [{ label: "LinkedIn post", href: "https://www.linkedin.com/in/danielcruzui/recent-activity/all/" }],
       },
       {
-        kicker: "The rule",
-        title: "Only verified, physical points",
-        body: "The non-negotiable design rule: nothing is public until an authorized entity verifies it. No private homes, no self-registered points. Trust is the product.",
+        id: "elbosque",
+        kicker: "Talk · Universidad El Bosque",
+        title: "Digital Creation program",
+        summary: "A talk for students of the Digital Creation program about design, AI and creative process.",
+        body: [
+          "A conversation with students of Universidad El Bosque's Digital Creation program about designing with AI: writing, thinking and structuring better, without losing your hand, your eye or your style.",
+        ],
+        tags: ["Speaking", "Education", "AI"],
+        links: [],
       },
       {
-        kicker: "Live status",
-        title: "Freshness you can see",
-        body: "Each point shows what it needs (urgent, normal, no longer accepting), how crowded it is, and when it was last updated — so outdated info stops redirecting help.",
+        id: "redacopio",
+        kicker: "Product · Open source",
+        title: "RedAcopio",
+        year: "2026",
+        summary: "An open-source platform to coordinate authorized donation drop-off points during emergencies.",
+        body: [
+          "After the M7.4 earthquake of 10 August 2026, northern Bogotá became a logistics hub. People wanted to help but didn't know where to go, what was needed, or whether a point was already full.",
+          "The non-negotiable rule: nothing is public until an authorized entity verifies it. Each point shows what it needs, how crowded it is and when it was last updated — and any city can deploy its own instance.",
+        ],
+        tags: ["Product design", "UI", "Front-end", "Data model"],
+        links: [{ label: "Visit live site", href: "https://redacopio-ten.vercel.app" }],
       },
       {
-        kicker: "Replicable",
-        title: "Built to be cloned",
-        body: "Three roles — public, coordinator, admin — and a deploy any city can repeat. Next.js, Supabase realtime, OpenStreetMap, free tiers.",
+        id: "more",
+        kicker: "And counting",
+        title: "Many more",
+        summary: "Experiments, mini apps and processes still in motion.",
+        body: [
+          "Prompt-Driven Design, generative image and video experiments, automation work for creative teams and small vibe-coded tools. Most of it lives in the Lab, on Instagram and on LinkedIn.",
+        ],
+        tags: ["Lab", "Experiments", "Automation"],
+        links: [
+          { label: "Open the lab", href: "/lab" },
+          { label: "Instagram", href: "https://www.instagram.com/dani_masdesign/" },
+          { label: "LinkedIn", href: "https://www.linkedin.com/in/danielcruzui/" },
+        ],
       },
-    ] as Step[],
+    ] as WorkItem[],
   },
   experience: {
     label: "Experience",
-    // TODO(linkedin): replace with the real timeline.
+    // From LinkedIn (linkedin.com/in/danielcruzui), October 2026.
     jobs: [
       {
-        period: "Present",
-        company: "Omnicom Production LATAM — formerly Flare",
-        role: "Designer",
-        body: "Design and visual production for global brands from the Bogotá hub.",
+        period: "2026 — Now",
+        company: "Mercado Libre",
+        role: "UX/UI Designer",
+        body: "User experience and AI applied to product, for teams across Latin America.",
+      },
+      {
+        period: "2024 — 2025",
+        company: "Flare BBDO",
+        role: "UI Design Lead · Automation Team",
+        body: "Led the design side of automation: creative prompting, visual design, client presentations and team management.",
+      },
+      {
+        period: "2023 — 2024",
+        company: "Flare BBDO",
+        role: "Creative Engineer",
+        body: "Interaction design and Figma systems bridging creative production and technology.",
+      },
+      {
+        period: "2022 — 2023",
+        company: "Grupo Sancho",
+        role: "UI Designer · Graphic Designer",
+        body: "User interfaces in Figma and graphic design for brand campaigns.",
+      },
+      {
+        period: "2020 — 2021",
+        company: "Starniza · Mercedes-Benz",
+        role: "Creative Designer",
+        body: "Digital interfaces for innovation projects, AI-enhanced visuals and marketing aligned with Mercedes-Benz global guidelines.",
+      },
+      {
+        period: "2019 — 2020",
+        company: "Dalh design · Ortix",
+        role: "Freelance & Industrial Designer",
+        body: "Where it started: illustration, retouching and industrial product design.",
       },
     ] as Job[],
+    alsoLabel: "Also",
+    also: [
+      "Talks in the Dominican Republic and Mexico, invited by Zalo Rocks, on how AI and process design are reshaping workflows.",
+      "Prompt-Driven Design — a living guide for designers using AI without losing their hand, eye or style (2025).",
+    ],
+    education: "Universidad Antonio Nariño",
   },
   labTeaser: {
     label: "Lab",
@@ -150,6 +224,29 @@ const en = {
     body: "Mini apps and half-ideas, vibe-coded in public. Play with them, break them, steal the idea.",
     cta: "Open the lab",
   },
+  booking: {
+    label: "Let's talk",
+    title: "Book a",
+    titleAccent: "space.",
+    body: "Pick what you'd like to talk about, a day and a time. It opens an email with everything filled in — I'll reply to confirm.",
+    typeLabel: "What about?",
+    types: [
+      { id: "talk", title: "Talk or workshop", body: "AI, processes and design for your team or event." },
+      { id: "ai", title: "AI & process advisory", body: "Bring AI and automation into the way you work." },
+      { id: "project", title: "Design project", body: "UX/UI, interfaces or a product idea." },
+    ],
+    dayLabel: "Day",
+    timeLabel: "Time (Bogotá, GMT-5)",
+    name: "Your name",
+    email: "Your email",
+    message: "Tell me a bit (optional)",
+    submit: "Send request",
+    directCta: "Or book directly on my calendar",
+    unavailable: "Booking opens soon — meanwhile, write to me on LinkedIn.",
+    subject: "Meeting request",
+    note: "Suggested times; I'll confirm by email.",
+  },
+  cta: { label: "Let's talk", aria: "Book a conversation" },
   contact: {
     label: "Contact",
     title1: "Let’s make",
@@ -245,63 +342,89 @@ const es: Dict = {
   },
   capabilities: {
     label: "Qué hago",
-    title: "Cuatro materiales,",
-    titleAccent: "una práctica.",
+    title: "Resuelvo problemas",
+    titleAccent: "desde distintas miradas.",
+    intro: "No siempre llego al problema desde el mismo lugar. A veces hay que ordenar un proceso, otras diseñar una experiencia y otras enseñar a un equipo a trabajar de una manera distinta.",
     items: [
       {
         index: "01",
-        title: "Sistemas y estructura",
-        body: "Sistemas de diseño, arquitectura de información y las reglas que dejan crecer un producto sin que se desarme.",
-        tags: ["Design systems", "Arquitectura de información", "Tokens"],
+        title: "Orquesto procesos, sistemas y estructuras",
+        body: "Conecto personas, herramientas y procesos para encontrar dónde se puede hacer mejor. Diseño workflows, automatizaciones y sistemas que convierten la complejidad en algo accionable.",
+        tags: ["Workflows", "Automatización", "Sistemas"],
       },
       {
         index: "02",
-        title: "Diseño generativo",
-        body: "Flujos de IA construidos como productos: sistemas de prompts, datasets propios, LoRAs y fine-tuning para producción visual a escala.",
-        tags: ["Flujos de IA", "Sistemas de prompts", "Datasets", "LoRAs"],
+        title: "Diseño experiencias digitales",
+        body: "UX/UI, interfaces y sistemas visuales. Traduzco necesidades, comportamientos y objetivos en experiencias que funcionan y tienen sentido.",
+        tags: ["UX/UI", "Interfaces", "Sistemas visuales"],
       },
       {
         index: "03",
-        title: "UI y producto",
-        body: "Interfaces con componentes claros, estados honestos y flujos que funcionan primero en el teléfono que llevas en el bolsillo.",
-        tags: ["Componentes", "Interacción", "Flujos de usuario", "Mobile-first"],
-      },
-      {
-        index: "04",
-        title: "Dirección de arte y vibe coding",
-        body: "Fotografía, composición y atmósfera — llevadas hasta el código, para que la idea salga tal como se imaginó.",
-        tags: ["Fotografía", "Editorial", "Creative coding"],
+        title: "Acompaño la adopción de IA",
+        body: "Ayudo a equipos y personas a incorporar IA y vibe coding en su forma de trabajar: desde entender las posibilidades hasta construir workflows y probarlos en proyectos reales.",
+        tags: ["IA", "Vibe coding", "Talleres"],
       },
     ],
   },
-  featured: {
-    label: "Proyecto destacado",
-    name: "RedAcopio",
-    year: "2026",
-    summary: "Plataforma open-source para coordinar puntos de acopio autorizados durante emergencias.",
-    url: "https://redacopio-ten.vercel.app",
-    role: ["Diseño de producto", "UI", "Front-end", "Modelo de datos"],
-    cta: "Ver sitio en vivo",
-    steps: [
+  work: {
+    label: "Trabajo destacado",
+    title: "Proyectos, charlas",
+    titleAccent: "e ideas en movimiento.",
+    hint: "Haz scroll o arrastra · toca una tarjeta para abrirla",
+    open: "Abrir",
+    close: "Cerrar",
+    items: [
       {
-        kicker: "Contexto",
-        title: "Un terremoto, y demasiada buena voluntad",
-        body: "Tras el terremoto M7,4 del 10 de agosto de 2026, el norte de Bogotá se volvió un centro logístico. La gente quería ayudar pero no sabía a dónde ir, qué se necesitaba o si un punto ya estaba lleno.",
+        id: "zalo",
+        kicker: "Charlas · República Dominicana y México",
+        title: "Gira de IA y procesos con Zalo Rocks",
+        year: "2026",
+        summary: "Invitado por Zalo Rocks a compartir cómo los procesos y la IA están redefiniendo los flujos de trabajo y la automatización.",
+        body: [
+          "Charlas en República Dominicana y, antes, en México sobre cómo los procesos y la inteligencia artificial están redefiniendo los flujos de trabajo y la automatización en distintos sectores: salud, marketing, publicidad y medios digitales.",
+          "El centro: metodologías que integran la IA no como un generador de resultados al azar, sino como un motor de lógica y automatización — con Figma como herramienta. A veces hasta un autolayout libera tiempo real en el día a día.",
+        ],
+        tags: ["Charlas", "IA", "Diseño de procesos", "Figma"],
+        links: [{ label: "Publicación en LinkedIn", href: "https://www.linkedin.com/in/danielcruzui/recent-activity/all/" }],
       },
       {
-        kicker: "La regla",
-        title: "Solo puntos físicos verificados",
-        body: "La regla de diseño no negociable: nada es público hasta que una entidad autorizada lo verifica. Nada de casas particulares ni puntos auto-registrados. La confianza es el producto.",
+        id: "elbosque",
+        kicker: "Charla · Universidad El Bosque",
+        title: "Programa de Creación Digital",
+        summary: "Una charla para estudiantes del programa de Creación Digital sobre diseño, IA y proceso creativo.",
+        body: [
+          "Una conversación con estudiantes del programa de Creación Digital de la Universidad El Bosque sobre diseñar con IA: escribir, pensar y estructurar mejor, sin perder la mano, el ojo ni el estilo.",
+        ],
+        tags: ["Charlas", "Educación", "IA"],
+        links: [],
       },
       {
-        kicker: "Estado en vivo",
-        title: "Frescura que se ve",
-        body: "Cada punto muestra qué necesita (urgente, normal, ya no recibe), qué tan lleno está y cuándo se actualizó — para que la información vieja deje de desviar la ayuda.",
+        id: "redacopio",
+        kicker: "Producto · Open source",
+        title: "RedAcopio",
+        year: "2026",
+        summary: "Plataforma open-source para coordinar puntos de acopio autorizados durante emergencias.",
+        body: [
+          "Tras el terremoto M7,4 del 10 de agosto de 2026, el norte de Bogotá se volvió un centro logístico. La gente quería ayudar pero no sabía a dónde ir, qué se necesitaba o si un punto ya estaba lleno.",
+          "La regla no negociable: nada es público hasta que una entidad autorizada lo verifica. Cada punto muestra qué necesita, qué tan lleno está y cuándo se actualizó — y cualquier ciudad puede desplegar su propia instancia.",
+        ],
+        tags: ["Diseño de producto", "UI", "Front-end", "Modelo de datos"],
+        links: [{ label: "Ver sitio en vivo", href: "https://redacopio-ten.vercel.app" }],
       },
       {
-        kicker: "Replicable",
-        title: "Hecha para clonarse",
-        body: "Tres roles — público, coordinador, admin — y un despliegue que cualquier ciudad puede repetir. Next.js, Supabase realtime, OpenStreetMap, tiers gratuitos.",
+        id: "more",
+        kicker: "Y contando",
+        title: "Muchos más",
+        summary: "Experimentos, mini apps y procesos que siguen en marcha.",
+        body: [
+          "Prompt-Driven Design, experimentos de imagen y video generativo, automatizaciones para equipos creativos y pequeñas herramientas hechas con vibe coding. Casi todo vive en el Lab, en Instagram y en LinkedIn.",
+        ],
+        tags: ["Lab", "Experimentos", "Automatización"],
+        links: [
+          { label: "Entrar al lab", href: "/lab" },
+          { label: "Instagram", href: "https://www.instagram.com/dani_masdesign/" },
+          { label: "LinkedIn", href: "https://www.linkedin.com/in/danielcruzui/" },
+        ],
       },
     ],
   },
@@ -309,12 +432,48 @@ const es: Dict = {
     label: "Experiencia",
     jobs: [
       {
-        period: "Actual",
-        company: "Omnicom Production LATAM — antes Flare",
-        role: "Diseñador",
-        body: "Diseño y producción visual para marcas globales desde el hub de Bogotá.",
+        period: "2026 — Hoy",
+        company: "Mercado Libre",
+        role: "Diseñador UX/UI",
+        body: "Experiencia de usuario e IA aplicada a producto, para equipos de toda América Latina.",
+      },
+      {
+        period: "2024 — 2025",
+        company: "Flare BBDO",
+        role: "UI Design Lead · Equipo de Automatización",
+        body: "Lideré el diseño en automatización: prompts creativos, diseño visual, presentaciones a clientes y gestión del equipo.",
+      },
+      {
+        period: "2023 — 2024",
+        company: "Flare BBDO",
+        role: "Creative Engineer",
+        body: "Diseño de interacción y sistemas en Figma entre la producción creativa y la tecnología.",
+      },
+      {
+        period: "2022 — 2023",
+        company: "Grupo Sancho",
+        role: "Diseñador UI · Diseñador gráfico",
+        body: "Interfaces de usuario en Figma y diseño gráfico para campañas de marca.",
+      },
+      {
+        period: "2020 — 2021",
+        company: "Starniza · Mercedes-Benz",
+        role: "Creative Designer",
+        body: "Interfaces digitales para proyectos de innovación, visuales con IA y marketing alineado a los lineamientos globales de Mercedes-Benz.",
+      },
+      {
+        period: "2019 — 2020",
+        company: "Dalh design · Ortix",
+        role: "Diseñador freelance e industrial",
+        body: "Donde empezó todo: ilustración, retoque y diseño industrial de producto.",
       },
     ],
+    alsoLabel: "Además",
+    also: [
+      "Charlas en República Dominicana y México, invitado por Zalo Rocks, sobre cómo la IA y el diseño de procesos están redefiniendo los flujos de trabajo.",
+      "Prompt-Driven Design — una guía viva para diseñadores que usan IA sin perder su mano, su ojo ni su estilo (2025).",
+    ],
+    education: "Universidad Antonio Nariño",
   },
   labTeaser: {
     label: "Lab",
@@ -323,6 +482,29 @@ const es: Dict = {
     body: "Mini apps y medias ideas, hechas con vibe coding en público. Juega con ellas, rómpelas, llévate la idea.",
     cta: "Entrar al lab",
   },
+  booking: {
+    label: "Hablemos",
+    title: "Agenda un",
+    titleAccent: "espacio.",
+    body: "Elige de qué quieres hablar, un día y una hora. Se abre un correo con todo listo y te respondo para confirmar.",
+    typeLabel: "¿Sobre qué?",
+    types: [
+      { id: "talk", title: "Charla o taller", body: "IA, procesos y diseño para tu equipo o evento." },
+      { id: "ai", title: "Asesoría en IA y procesos", body: "Incorporar IA y automatización a tu forma de trabajar." },
+      { id: "project", title: "Proyecto de diseño", body: "UX/UI, interfaces o una idea de producto." },
+    ],
+    dayLabel: "Día",
+    timeLabel: "Hora (Bogotá, GMT-5)",
+    name: "Tu nombre",
+    email: "Tu correo",
+    message: "Cuéntame un poco (opcional)",
+    submit: "Enviar solicitud",
+    directCta: "O agenda directo en mi calendario",
+    unavailable: "La agenda abre pronto — mientras tanto, escríbeme por LinkedIn.",
+    subject: "Solicitud de reunión",
+    note: "Horarios sugeridos; confirmo por correo.",
+  },
+  cta: { label: "Hablemos", aria: "Agendar una conversación" },
   contact: {
     label: "Contacto",
     title1: "Hagamos que",

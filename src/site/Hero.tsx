@@ -79,7 +79,7 @@ function sampleImage(img: HTMLImageElement, w: number, h: number, maxCount: numb
   const dy = (h - dh) / 2;
 
   // Start dense, then widen spacing until the visible count fits the budget.
-  let spacing = w < 768 ? 2 : 1.6;
+  let spacing = w < 768 ? 1.8 : 1.4;
   for (let attempt = 0; ; attempt++) {
     const sw = Math.max(1, Math.floor(dw / spacing));
     const sh = Math.max(1, Math.floor(dh / spacing));
@@ -126,7 +126,9 @@ export function Hero() {
 
   const [slide, setSlide] = useState(0);
   const slideRef = useRef(0);
-  const [density, setDensity] = useState(0.5);
+  const [density, setDensity] = useState(1);
+  // Auto quality (0.3–1): trims visible particles when the device can't keep up.
+  const [quality, setQuality] = useState(1);
   const [round, setRound] = useState(true);
   const roundRef = useRef(true);
   const densityRef = useRef(0.5);
@@ -237,13 +239,30 @@ export function Hero() {
 
     const mouse = { x: -9999, y: -9999, active: false };
 
+    // Auto-quality governor: measures our own per-frame work (not the refresh rate, so 30 Hz
+    // low-power modes don't count against it) and fades particles out/in to stay smooth.
+    const gov = { quality: 1, work: 6, timer: 0, warm: 0 };
+    const govern = (workMs: number, dtMs: number) => {
+      gov.work = gov.work * 0.9 + workMs * 0.1;
+      gov.warm += dtMs;
+      gov.timer += dtMs;
+      if (gov.warm < 1200 || gov.timer < 400) return; // let the intro settle first
+      gov.timer = 0;
+      const before = gov.quality;
+      if (gov.work > 11) gov.quality = Math.max(0.3, gov.quality - 0.07);
+      else if (gov.work < 6.5) gov.quality = Math.min(1, gov.quality + 0.03);
+      if (Math.abs(before - gov.quality) > 0.001) setQuality(Math.round(gov.quality * 100) / 100);
+      if (import.meta.env.DEV) (window as unknown as { __heroPerf: object }).__heroPerf = { workMs: +gov.work.toFixed(2), quality: gov.quality, N };
+    };
+
     const build = () => {
       if (!images.length) return;
       const rect = canvas.getBoundingClientRect();
       w = rect.width;
       h = rect.height;
       const mobile = w < 768;
-      dpr = Math.min(window.devicePixelRatio || 1, mobile ? 1 : 1.25);
+      // Phones have 2–3× screens: rendering at 1× made particles blurry. Cap at 2× (mobile) / 1.5× (desktop).
+      dpr = Math.min(window.devicePixelRatio || 1, mobile ? 2 : 1.5);
       canvas.width = Math.round(w * dpr);
       canvas.height = Math.round(h * dpr);
       image = ctx.createImageData(canvas.width, canvas.height);
@@ -251,7 +270,8 @@ export function Hero() {
 
       // Particle budget: the physics runs every frame, so keep it phone-friendly.
       // Sampled once at full density; the slider only fades particles in/out.
-      const budget = mobile ? 24000 : 80000;
+      // The auto-quality governor trims this live on slower devices.
+      const budget = mobile ? 36000 : 110000;
       const samples = images.map((img, i) => sampleImage(img, w, h, budget, SLIDES[i].cutoff));
       N = Math.max(...samples.map((s) => s.xs.length));
 
@@ -310,6 +330,7 @@ export function Hero() {
       if (disposed || !visible || !buf || !image) return;
       const step = Math.min(3, (now - last) / 16.667);
       last = now;
+      const workStart = performance.now();
       time += step / 60;
 
       const tg = targets[slideRef.current];
@@ -330,7 +351,7 @@ export function Hero() {
       const floatAmp = Math.min(w, h) * 0.07;
 
       // Density: fewer visible particles get proportionally bigger, both eased.
-      const frac = densityFraction(densityRef.current);
+      const frac = densityFraction(densityRef.current) * gov.quality;
       const visibleCount = tg.count * frac;
       const targetSize = tg.size * Math.min(2.6, 1 / Math.sqrt(frac));
       size += (targetSize - size) * (1 - Math.pow(0.94, step));
@@ -465,6 +486,7 @@ export function Hero() {
         }
       }
       ctx.putImageData(image, 0, 0);
+      govern(performance.now() - workStart, step * 16.667);
       raf = requestAnimationFrame(frame);
     };
 
@@ -647,7 +669,7 @@ export function Hero() {
                 <>
                   <div className="flex items-center justify-between gap-4">
                     <span className="display text-2xl italic text-[var(--accent-2)]">{t.tryIt}</span>
-                    <span className="label tabular-nums text-white/60">{(((counts[slide] ?? 0) * densityFraction(density)) / 1000).toFixed(1)}k {t.particles}</span>
+                    <span className="label tabular-nums text-white/60">{(((counts[slide] ?? 0) * densityFraction(density) * quality) / 1000).toFixed(1)}k {t.particles}</span>
                   </div>
                   <label className="mt-3 block">
                     <span className="label text-white/60">{t.density}</span>
