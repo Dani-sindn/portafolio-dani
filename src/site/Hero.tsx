@@ -24,6 +24,12 @@ const SLIDES: Slide[] = [
 
 const AUTOPLAY_MS = 8000;
 
+/** Slide morph timing (seconds): departures are staggered over DELAY, each particle travels for MOVE. */
+const TRANS_DELAY = 0.9;
+const TRANS_MOVE = 1.5;
+
+const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+
 const smoothstep = (a: number, b: number, v: number) => {
   const x = Math.min(1, Math.max(0, (v - a) / (b - a)));
   return x * x * (3 - 2 * x);
@@ -120,7 +126,6 @@ export function Hero() {
 
   const [slide, setSlide] = useState(0);
   const slideRef = useRef(0);
-  const kickRef = useRef(false);
   const [density, setDensity] = useState(0.5);
   const [round, setRound] = useState(true);
   const roundRef = useRef(true);
@@ -149,7 +154,6 @@ export function Hero() {
   useEffect(() => {
     if (slideRef.current === slide) return;
     slideRef.current = slide;
-    kickRef.current = true;
   }, [slide]);
 
   // Autoplay countdown: ticks only while the visitor is at the top of the page (barely scrolled)
@@ -225,6 +229,11 @@ export function Hero() {
     let visible = true;
     let last = performance.now();
     let time = 0;
+    // Slide transition state: particles float from where they were (snapshot) to the new image.
+    let shown = -1;
+    let transT = Infinity;
+    let sx = new Float32Array(0), sy = new Float32Array(0), dl = new Float32Array(0);
+    let sr = new Float32Array(0), sg = new Float32Array(0), sb = new Float32Array(0), sa = new Float32Array(0);
 
     const mouse = { x: -9999, y: -9999, active: false };
 
@@ -276,6 +285,10 @@ export function Hero() {
       vx = new Float32Array(N); vy = new Float32Array(N);
       cr = new Float32Array(N); cg = new Float32Array(N); cb = new Float32Array(N); ca = new Float32Array(N);
       rx = new Float32Array(N); ry = new Float32Array(N); ph = new Float32Array(N); fr = new Float32Array(N);
+      sx = new Float32Array(N); sy = new Float32Array(N); dl = new Float32Array(N);
+      sr = new Float32Array(N); sg = new Float32Array(N); sb = new Float32Array(N); sa = new Float32Array(N);
+      shown = -1;
+      transT = Infinity;
       for (let i = 0; i < N; i++) {
         // Intro: start as a loose cloud around the center, then assemble.
         const ang = Math.random() * Math.PI * 2;
@@ -302,13 +315,19 @@ export function Hero() {
       const tg = targets[slideRef.current];
       if (!tg) return;
 
-      if (kickRef.current) {
-        kickRef.current = false;
-        for (let i = 0; i < N; i++) {
-          vx[i] += (Math.random() - 0.5) * 12;
-          vy[i] += (Math.random() - 0.5) * 12;
+      if (shown !== slideRef.current) {
+        const first = shown === -1;
+        shown = slideRef.current;
+        if (!first) {
+          // Snapshot the current state; stagger departures top→bottom like a slow wave.
+          sx.set(x); sy.set(y); sr.set(cr); sg.set(cg); sb.set(cb); sa.set(ca);
+          for (let i = 0; i < N; i++) dl[i] = 0.55 * Math.min(1, Math.max(0, tg.y[i] / h)) + 0.45 * Math.random();
+          transT = 0;
         }
       }
+      transT += step / 60;
+      const inTrans = transT < TRANS_DELAY + TRANS_MOVE;
+      const floatAmp = Math.min(w, h) * 0.07;
 
       // Density: fewer visible particles get proportionally bigger, both eased.
       const frac = densityFraction(densityRef.current);
@@ -343,13 +362,25 @@ export function Hero() {
       buf.fill(0xff000000); // opaque black
 
       for (let i = 0; i < N; i++) {
-        const want = i < visibleCount ? ta[i] : 0;
-        ca[i] += (want - ca[i]) * lerpC * 0.45;
+        let want = i < visibleCount ? ta[i] : 0;
 
-        // Home: image position, scattered upward by scroll, breathing over time.
+        // Base target; during a slide change, float along an eased arc from the snapshot.
+        let bx = tx[i], by = ty[i];
+        let lt = 1;
+        if (inTrans) {
+          lt = Math.min(1, Math.max(0, (transT - dl[i] * TRANS_DELAY) / TRANS_MOVE));
+          const k = easeInOut(lt);
+          const arc = Math.sin(Math.PI * lt) * floatAmp;
+          bx = sx[i] + (tx[i] - sx[i]) * k + rx[i] * 0.6 * arc;
+          by = sy[i] + (ty[i] - sy[i]) * k - (0.6 + 0.4 * Math.abs(ry[i])) * arc;
+          want = sa[i] + (want - sa[i]) * k;
+        }
+        ca[i] += (want - ca[i]) * lerpC * (inTrans ? 1 : 0.45);
+
+        // Home: target, scattered upward by scroll, breathing over time.
         const tt = time * fr[i] + ph[i];
-        const hx = tx[i] + rx[i] * DX * p2 + Math.sin(tt) * amp;
-        const hy = ty[i] + (ry[i] - 0.8) * DY * p2 + Math.cos(tt * 0.8) * amp;
+        const hx = bx + rx[i] * DX * p2 + Math.sin(tt) * amp;
+        const hy = by + (ry[i] - 0.8) * DY * p2 + Math.cos(tt * 0.8) * amp;
 
         let ax = (hx - x[i]) * K;
         let ay = (hy - y[i]) * K;
@@ -388,9 +419,19 @@ export function Hero() {
 
         // Color: follow the slide, and tint bright particles with the accent as they scatter.
         const mix = tl[i] ? p : p * 0.35;
-        cr[i] += (tr[i] + (ar - tr[i]) * mix - cr[i]) * lerpC;
-        cg[i] += (tgc[i] + (ag - tgc[i]) * mix - cg[i]) * lerpC;
-        cb[i] += (tbc[i] + (ab - tbc[i]) * mix - cb[i]) * lerpC;
+        let gr = tr[i] + (ar - tr[i]) * mix;
+        let gg = tgc[i] + (ag - tgc[i]) * mix;
+        let gb = tbc[i] + (ab - tbc[i]) * mix;
+        if (lt < 1) {
+          // Color travels with the particle instead of switching before it arrives.
+          const k = easeInOut(lt);
+          gr = sr[i] + (gr - sr[i]) * k;
+          gg = sg[i] + (gg - sg[i]) * k;
+          gb = sb[i] + (gb - sb[i]) * k;
+        }
+        cr[i] += (gr - cr[i]) * lerpC;
+        cg[i] += (gg - cg[i]) * lerpC;
+        cb[i] += (gb - cb[i]) * lerpC;
 
         const a = ca[i] * (1 - p * 0.35 * (1 - tl[i]));
         if (a < 0.02) continue;
