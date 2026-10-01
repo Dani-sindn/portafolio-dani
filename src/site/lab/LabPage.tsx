@@ -131,7 +131,7 @@ export function LabPage({ slug }: { slug?: string }) {
   useEffect(() => {
     document.title = exp ? `${t.labs[exp.slug].title} — Lab · Dani Cruz` : "Lab · Dani Cruz";
     return () => {
-      document.title = "Dani Cruz — Designer & creative technologist";
+      document.title = "Dani Cruz — Designer & solutions orchestrator";
     };
   }, [exp, t]);
 

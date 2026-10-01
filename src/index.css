@@ -47,6 +47,14 @@
     backdrop-filter: blur(14px) saturate(140%);
     -webkit-backdrop-filter: blur(14px) saturate(140%);
   }
+  /* Phones: a live blur over the animated canvas is re-computed every frame and caused scroll lag. */
+  @media (max-width: 767px) {
+    .glass {
+      background: rgb(8 8 8 / 0.88);
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+    }
+  }
 
   .btn {
     @apply inline-flex items-center gap-2 rounded-full border border-white/20 px-5 py-2.5 text-sm text-white transition-colors duration-300 hover:border-white/50 hover:bg-white/5;

@@ -99,15 +99,19 @@ function sampleImage(img: HTMLImageElement, w: number, h: number, maxCount: numb
 
     const xs: number[] = [], ys: number[] = [], rs: number[] = [], gs: number[] = [], bs: number[] = [], ls: number[] = [];
     for (let py = 0; py < sh; py++) {
+      // On phones the photo doesn't reach the screen edges: fade its top/bottom rows so bright
+      // backdrops don't end in a hard horizontal line (which turned into an accent stripe on scroll).
+      const fy = py / sh;
+      const edge = phone ? Math.min(1, fy / 0.08, (1 - fy) / 0.24) : 1;
       for (let px = 0; px < sw; px++) {
         const k = (py * sw + px) * 4;
-        const lum = (data[k] + data[k + 1] + data[k + 2]) / 3;
+        const lum = ((data[k] + data[k + 1] + data[k + 2]) / 3) * edge;
         if (lum < cutoff) continue; // near-black / backdrop: empty space
         xs.push(dx + px * spacing + (Math.random() - 0.5) * spacing * 0.4);
         ys.push(dy + py * spacing + (Math.random() - 0.5) * spacing * 0.4);
-        rs.push(Math.max(0, data[k] - cutoff) * gain);
-        gs.push(Math.max(0, data[k + 1] - cutoff) * gain);
-        bs.push(Math.max(0, data[k + 2] - cutoff) * gain);
+        rs.push(Math.max(0, data[k] * edge - cutoff) * gain);
+        gs.push(Math.max(0, data[k + 1] * edge - cutoff) * gain);
+        bs.push(Math.max(0, data[k + 2] * edge - cutoff) * gain);
         ls.push((lum - cutoff) * gain > 95 ? 1 : 0);
       }
     }
@@ -133,7 +137,8 @@ export function Hero() {
 
   const [slide, setSlide] = useState(0);
   const slideRef = useRef(0);
-  const [density, setDensity] = useState(1);
+  // Phones start at medium density: the per-frame physics was lagging while scrolling.
+  const [density, setDensity] = useState(() => (typeof window !== "undefined" && window.innerWidth < 768 ? 0.5 : 1));
   // Auto quality (0.3–1): trims visible particles when the device can't keep up.
   const [quality, setQuality] = useState(1);
   const [round, setRound] = useState(true);
@@ -144,7 +149,7 @@ export function Hero() {
   useEffect(() => {
     setTouch(window.matchMedia("(hover: none)").matches);
   }, []);
-  const densityRef = useRef(0.5);
+  const densityRef = useRef(typeof window !== "undefined" && window.innerWidth < 768 ? 0.5 : 1);
   const [counts, setCounts] = useState<number[]>([]);
   const [ready, setReady] = useState(false);
   const [reduced] = useState(prefersReducedMotion);
@@ -262,8 +267,9 @@ export function Hero() {
       if (gov.warm < 1200 || gov.timer < 400) return; // let the intro settle first
       gov.timer = 0;
       const before = gov.quality;
-      if (gov.work > 11) gov.quality = Math.max(0.3, gov.quality - 0.07);
-      else if (gov.work < 6.5) gov.quality = Math.min(1, gov.quality + 0.03);
+      const phone = w < 768;
+      if (gov.work > (phone ? 7 : 11)) gov.quality = Math.max(0.3, gov.quality - 0.07);
+      else if (gov.work < (phone ? 4 : 6.5)) gov.quality = Math.min(1, gov.quality + 0.03);
       if (Math.abs(before - gov.quality) > 0.001) setQuality(Math.round(gov.quality * 100) / 100);
       if (import.meta.env.DEV) (window as unknown as { __heroPerf: object }).__heroPerf = { workMs: +gov.work.toFixed(2), quality: gov.quality, N };
     };
@@ -274,8 +280,8 @@ export function Hero() {
       w = rect.width;
       h = rect.height;
       const mobile = w < 768;
-      // Phones have 2–3× screens: rendering at 1× made particles blurry. Cap at 2× (mobile) / 1.5× (desktop).
-      dpr = Math.min(window.devicePixelRatio || 1, mobile ? 2 : 1.5);
+      // Phones have 2–3× screens: 1× looked blurry, 2× was too heavy while scrolling. 1.5× everywhere.
+      dpr = Math.min(window.devicePixelRatio || 1, 1.5);
       canvas.width = Math.round(w * dpr);
       canvas.height = Math.round(h * dpr);
       image = ctx.createImageData(canvas.width, canvas.height);
@@ -631,27 +637,17 @@ export function Hero() {
         )}
 
         <div className="pointer-events-none absolute inset-x-0 bottom-0 px-4 pb-6 sm:px-8 sm:pb-10">
-          <div className="mx-auto flex max-w-7xl flex-col gap-6 md:flex-row md:items-end md:justify-between">
+          <div className="mx-auto flex max-w-7xl flex-col gap-4 md:flex-row md:items-end md:justify-between md:gap-6">
             <div
               style={{
                 opacity: "var(--copy, 1)",
                 transform: "translateY(calc((1 - var(--copy, 1)) * -24px))",
-                filter: "blur(calc((1 - var(--copy, 1)) * 6px))",
               }}
             >
-              <p className="label mb-3 text-white/70">{t.role} · {t.location}</p>
-              <h1 className="display text-[clamp(3.5rem,13vw,11rem)] leading-[0.85] text-white">
-                Dani <em className="text-[var(--accent)]">Cruz</em>
+              <p className="label mb-3 text-white/70">{t.role} · {t.region}</p>
+              <h1 className="display text-[clamp(3.2rem,11vw,9.5rem)] leading-[0.88] text-white">
+                {t.hello} <em className="text-[var(--accent)]">{t.helloName}</em>
               </h1>
-              <p
-                className="mt-4 max-w-md text-lg text-white/85 sm:text-xl"
-                style={{
-                  opacity: "clamp(0, calc(var(--p, 0) * 4.5 - 0.4), 1)",
-                  transform: "translateY(calc((1 - clamp(0, calc(var(--p, 0) * 4.5 - 0.4), 1)) * 12px))",
-                }}
-              >
-                {t.tagline}
-              </p>
             </div>
 
             <div className="glass pointer-events-auto w-full max-w-[22rem] rounded-2xl p-2.5 text-sm max-md:opacity-[var(--copy,1)] max-md:group-data-[open=true]/hero:pointer-events-none md:w-auto md:min-w-[19rem] md:p-4">
