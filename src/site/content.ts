@@ -9,7 +9,6 @@ export const profile = {
   // Optional Calendly / Cal.com link. When set, the booking section links to it too.
   bookingUrl: "",
   links: {
-    github: "https://github.com/Dani-sindn",
     linkedin: "https://www.linkedin.com/in/danielcruzui/",
     instagram: "https://www.instagram.com/dani_masdesign/",
   },
@@ -257,7 +256,7 @@ const en = {
     title1: "Let’s make",
     titleAccent: "something",
     title2: "move.",
-    footer: "Built with React, canvas and too many palettes.",
+    footer: "No particles were harmed in the process.",
   },
   lab: {
     back: "Back to home",
@@ -520,7 +519,7 @@ const es: Dict = {
     title1: "Hagamos que",
     titleAccent: "algo",
     title2: "se mueva.",
-    footer: "Hecho con React, canvas y demasiadas paletas.",
+    footer: "Ninguna partícula fue dañada en el proceso.",
   },
   lab: {
     back: "Volver al inicio",

@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import { ArrowUpRight, Github, Instagram, Linkedin, Mail, Menu, X } from "lucide-react";
+import { ArrowUpRight, Instagram, Linkedin, Mail, Menu, X } from "lucide-react";
 import { profile } from "./content";
 import { palettes, usePalette } from "./palette";
 import { useLang } from "./i18n";
@@ -170,7 +170,6 @@ export function Contact() {
   const { t } = useLang();
   const { links, email } = profile;
   const social = [
-    { href: links.github, label: "GitHub", Icon: Github },
     { href: links.linkedin, label: "LinkedIn", Icon: Linkedin },
     { href: links.instagram, label: "Instagram", Icon: Instagram },
   ].filter((l) => l.href);
