@@ -1,12 +1,13 @@
 import { motion, useScroll, useTransform, type MotionValue } from "framer-motion";
 import { useRef } from "react";
 import { useLang } from "./i18n";
+import { dotted } from "./magnet/Dots";
 
-function Word({ word, range, progress, accent }: { word: string; range: [number, number]; progress: MotionValue<number>; accent: boolean }) {
+function Word({ word, range, progress, accent, last }: { word: string; range: [number, number]; progress: MotionValue<number>; accent: boolean; last: boolean }) {
   const opacity = useTransform(progress, range, [0.14, 1]);
   return (
     <motion.span style={{ opacity }} className={accent ? "display italic text-[var(--accent)]" : undefined}>
-      {word}{" "}
+      {last ? dotted(word) : word}{" "}
     </motion.span>
   );
 }
@@ -35,9 +36,9 @@ export function Manifesto() {
                   : "mt-6 max-w-3xl text-[clamp(1.2rem,2.6vw,2rem)] leading-[1.25] tracking-tight text-white/90"
               }
             >
-              {words.map((w) => {
+              {words.map((w, wi) => {
                 const start = (index++ / total) * 0.85;
-                return <Word key={index} word={w} progress={scrollYProgress} range={[start, start + 0.85 / total + 0.04]} accent={accents.has(w)} />;
+                return <Word key={index} word={w} progress={scrollYProgress} range={[start, start + 0.85 / total + 0.04]} accent={accents.has(w)} last={wi === words.length - 1} />;
               })}
             </p>
           ))}

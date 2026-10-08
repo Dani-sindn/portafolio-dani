@@ -4,6 +4,7 @@ import { ArrowUpRight, BadgeCheck, X } from "lucide-react";
 import type { WorkItem } from "./content";
 import { useLang } from "./i18n";
 import { Link } from "./router";
+import { dotted } from "./magnet/Dots";
 
 /* ---------- Generative covers (no photos needed; they follow the active palette) ---------- */
 
@@ -195,6 +196,7 @@ function Detail({ item, onClose, closeLabel }: { item: WorkItem; onClose: () => 
         exit={{ y: 30, opacity: 0 }}
         transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
         onClick={(e) => e.stopPropagation()}
+        data-lenis-prevent
         className="relative max-h-[92svh] w-full max-w-3xl overflow-y-auto rounded-t-[28px] border border-white/10 bg-[#070707] sm:rounded-[28px]"
       >
         <Cover id={item.id} className="aspect-[16/9]" />
@@ -299,7 +301,7 @@ export function Featured() {
       <div>
         <p className="label text-[var(--accent)]">( {t.label} )</p>
         <h2 className="display mt-4 text-[clamp(2.6rem,6.5vw,5.5rem)] leading-[0.92] text-white">
-          {t.title} <em className="text-[var(--accent-2)]">{t.titleAccent}</em>
+          {t.title} <em className="text-[var(--accent-2)]">{dotted(t.titleAccent)}</em>
         </h2>
       </div>
       <p className="label text-white/45">{pinned ? t.hint : t.hintTouch}</p>

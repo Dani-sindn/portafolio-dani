@@ -2,6 +2,7 @@ import { motion, useScroll, useTransform, type MotionValue } from "framer-motion
 import { useRef } from "react";
 import type { Capability } from "./content";
 import { useLang } from "./i18n";
+import { dotted } from "./magnet/Dots";
 
 // Each card gets a deeper mix of the accent — the stack reads as layers of depth.
 const tints = [10, 26, 100];
@@ -51,7 +52,7 @@ export function Capabilities() {
       <div className="mx-auto max-w-5xl px-4 pt-24 sm:px-8">
         <p className="label text-[var(--accent)]">( {t.capabilities.label} )</p>
         <h2 className="display mt-4 text-[clamp(2.6rem,7vw,5.5rem)] leading-[0.95] text-white">
-          {t.capabilities.title} <em className="text-[var(--accent-2)]">{t.capabilities.titleAccent}</em>
+          {t.capabilities.title} <em className="text-[var(--accent-2)]">{dotted(t.capabilities.titleAccent)}</em>
         </h2>
         <p className="mt-6 max-w-2xl text-lg leading-relaxed text-white/70 sm:text-xl">{t.capabilities.intro}</p>
       </div>

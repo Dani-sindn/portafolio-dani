@@ -3,6 +3,7 @@ import { track } from "@vercel/analytics";
 import { ArrowUpRight, CalendarClock, Check } from "lucide-react";
 import { profile } from "./content";
 import { useLang } from "./i18n";
+import { dotted } from "./magnet/Dots";
 
 const TIMES = ["09:00", "11:00", "15:00", "17:00"];
 
@@ -67,7 +68,7 @@ export function Booking() {
         <div>
           <p className="label text-[var(--accent)]">( {b.label} )</p>
           <h2 className="display mt-4 text-[clamp(3rem,8vw,6.5rem)] leading-[0.9] text-white">
-            {b.title} <em className="text-[var(--accent)]">{b.titleAccent}</em>
+            {b.title} <em className="text-[var(--accent)]">{dotted(b.titleAccent)}</em>
           </h2>
           <p className="mt-6 max-w-md text-lg text-white/70">{b.body}</p>
 

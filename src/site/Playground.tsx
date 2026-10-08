@@ -2,6 +2,7 @@ import { ArrowUpRight } from "lucide-react";
 import { useLang } from "./i18n";
 import { Link } from "./router";
 import { experiments } from "./lab/experiments";
+import { dotted } from "./magnet/Dots";
 
 /** Home teaser for the Lab: a strip of experiment thumbnails linking to /lab. */
 export function LabTeaser() {
@@ -12,7 +13,7 @@ export function LabTeaser() {
         <p className="label text-[var(--accent)]">( {t.labTeaser.label} )</p>
         <div className="mt-4 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
           <h2 className="display max-w-3xl text-[clamp(2.6rem,7vw,5.5rem)] leading-[0.95] text-white">
-            {t.labTeaser.title} <em className="text-[var(--accent-2)]">{t.labTeaser.titleAccent}</em>
+            {t.labTeaser.title} <em className="text-[var(--accent-2)]">{dotted(t.labTeaser.titleAccent)}</em>
           </h2>
           <div className="max-w-sm">
             <p className="text-white/65">{t.labTeaser.body}</p>

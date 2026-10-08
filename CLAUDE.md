@@ -38,6 +38,19 @@ Vite + React 18 + TS + Tailwind 3. Deployed by Vercel on every push to `main`
   out (a hard edge used to turn into an accent-colored stripe), compact controls, start at 50%
   density, DPR capped at 1.5, and `.glass` has no backdrop-filter (it caused scroll lag).
 
+## Magnet dots + sound + smooth scroll
+
+- `src/site/magnet/`: heading periods rendered with `dotted()` / `<MagnetDot />` detach above 60% of
+  the viewport (and only once readable), orbit the pointer, return home below 72% (hysteresis), and
+  settle on the footer's `<MagnetDot home />`. Keep the swarm sparse (1 satellite per dot).
+- `sound.ts` is synthesized Web Audio. Chain: voices → master (0.05) → lowpass 2.4 kHz → limiter
+  (threshold −6 dB; a low threshold adds Web Audio's auto makeup gain) → ceiling 0.5. Echo loop gain
+  0.3. Each dot owns a pentatonic note by document order (chime going down, softer homecoming going
+  up). Max 3 overlapping bells, 120 ms min gap. Measured worst-case peak ≈ −30 dBFS.
+- `smoothScroll.ts`: Lenis (not GSAP ScrollSmoother — it transforms content and breaks the sticky
+  sections). Wheel only; touch is native. Paused while body scroll is locked. Nested scrollers need
+  `data-lenis-prevent`. Internal anchor links go through `navigate()` → `scrollToTarget()`.
+
 ## Pending / owner-provided data
 
 - `profile.email` and `profile.bookingUrl` are empty: the agenda's submit stays disabled until set.

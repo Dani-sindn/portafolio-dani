@@ -46,7 +46,7 @@ export interface Job {
 }
 
 const en = {
-  nav: { about: "About", work: "Work", lab: "Lab", contact: "Contact", agenda: "Let's talk", palette: "Change palette", menu: "Open menu", close: "Close menu" },
+  nav: { about: "About", work: "Work", lab: "Lab", contact: "Contact", agenda: "Let's talk", palette: "Change palette", menu: "Open menu", close: "Close menu", soundOn: "Turn sound on", soundOff: "Turn sound off" },
   langModal: {
     title: "How would you like to read?",
     body: "You can switch anytime from the menu.",
@@ -207,14 +207,10 @@ const en = {
         role: "Creative Designer",
         body: "Digital interfaces for innovation projects, AI-enhanced visuals and marketing aligned with Mercedes-Benz global guidelines.",
       },
-      {
-        period: "2019 — 2020",
-        company: "Dalh design · Ortix",
-        role: "Freelance & Industrial Designer",
-        body: "Where it started: illustration, retouching and industrial product design.",
-      },
     ] as Job[],
     alsoLabel: "Also",
+    open: "See full experience",
+    close: "Hide experience",
     also: [
       "Talks in the Dominican Republic and Mexico, invited by Zalo Rocks, on how AI and process design are reshaping workflows.",
       "Prompt-Driven Design — a living guide for designers using AI without losing their hand, eye or style (2025).",
@@ -253,9 +249,8 @@ const en = {
   cta: { label: "Let's talk", aria: "Book a conversation" },
   contact: {
     label: "Contact",
-    title1: "Let’s make",
-    titleAccent: "something",
-    title2: "move.",
+    title1: "Here’s where we make things",
+    titleAccent: "happen",
     footer: "No particles were harmed in the process.",
   },
   lab: {
@@ -310,7 +305,7 @@ const en = {
 export type Dict = typeof en;
 
 const es: Dict = {
-  nav: { about: "Sobre mí", work: "Trabajo", lab: "Lab", contact: "Contacto", agenda: "Hablemos", palette: "Cambiar paleta", menu: "Abrir menú", close: "Cerrar menú" },
+  nav: { about: "Sobre mí", work: "Trabajo", lab: "Lab", contact: "Contacto", agenda: "Hablemos", palette: "Cambiar paleta", menu: "Abrir menú", close: "Cerrar menú", soundOn: "Activar sonido", soundOff: "Silenciar sonido" },
   langModal: {
     title: "¿En qué idioma quieres leer?",
     body: "Puedes cambiarlo cuando quieras desde el menú.",
@@ -470,14 +465,10 @@ const es: Dict = {
         role: "Creative Designer",
         body: "Interfaces digitales para proyectos de innovación, visuales con IA y marketing alineado a los lineamientos globales de Mercedes-Benz.",
       },
-      {
-        period: "2019 — 2020",
-        company: "Dalh design · Ortix",
-        role: "Diseñador freelance e industrial",
-        body: "Donde empezó todo: ilustración, retoque y diseño industrial de producto.",
-      },
     ],
     alsoLabel: "Además",
+    open: "Ver experiencia completa",
+    close: "Ocultar experiencia",
     also: [
       "Charlas en República Dominicana y México, invitado por Zalo Rocks, sobre cómo la IA y el diseño de procesos están redefiniendo los flujos de trabajo.",
       "Prompt-Driven Design — una guía viva para diseñadores que usan IA sin perder su mano, su ojo ni su estilo (2025).",
@@ -516,9 +507,8 @@ const es: Dict = {
   cta: { label: "Hablemos", aria: "Agendar una conversación" },
   contact: {
     label: "Contacto",
-    title1: "Hagamos que",
-    titleAccent: "algo",
-    title2: "se mueva.",
+    title1: "Aquí hacemos que las cosas",
+    titleAccent: "sucedan",
     footer: "Ninguna partícula fue dañada en el proceso.",
   },
   lab: {

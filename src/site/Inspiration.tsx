@@ -2,6 +2,7 @@ import { motion, useInView } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import { useRef } from "react";
 import { useLang } from "./i18n";
+import { dotted } from "./magnet/Dots";
 
 const POST_URL = "https://www.instagram.com/p/C7XJ5DFvkyb/";
 // Instagram's embed can't be themed, so we crop it to the media only.
@@ -28,7 +29,7 @@ export function Inspiration() {
         <div>
           <p className="label text-[var(--accent)]">( {t.label} )</p>
           <h2 className="display mt-5 text-[clamp(2.6rem,6vw,4.6rem)] leading-[0.95] text-white">
-            {t.title} <em className="text-[var(--accent-2)]">{t.titleAccent}</em>
+            {t.title} <em className="text-[var(--accent-2)]">{dotted(t.titleAccent)}</em>
           </h2>
           <p className="mt-6 max-w-md text-base leading-relaxed text-white/70 sm:text-lg">{t.body}</p>
         </div>

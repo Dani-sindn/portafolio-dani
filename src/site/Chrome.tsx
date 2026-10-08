@@ -1,7 +1,9 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import { ArrowUpRight, Instagram, Linkedin, Mail, Menu, X } from "lucide-react";
-import { profile } from "./content";
+import { ArrowUpRight, Instagram, Linkedin, Mail, Menu, Plus, X } from "lucide-react";
+import { profile, type Job } from "./content";
+import { MagnetDot } from "./magnet/Dots";
+import { SoundToggle } from "./magnet/SoundToggle";
 import { palettes, usePalette } from "./palette";
 import { useLang } from "./i18n";
 import { Link, navigate, usePath } from "./router";
@@ -73,6 +75,7 @@ export function Nav() {
             </span>
             <span className="label hidden sm:inline">{palettes.some((p) => p.id === palette.id) ? palette.name : "Custom"}</span>
           </button>
+          <SoundToggle />
           <button
             type="button"
             onClick={() => setMenuOpen((o) => !o)}
@@ -127,40 +130,89 @@ export function Nav() {
   );
 }
 
+function JobRow({ job }: { job: Job }) {
+  return (
+    <div className="group grid gap-2 py-8 md:grid-cols-[10rem_1fr_1fr] md:gap-8">
+      <span className="label pt-2 text-white/50">{job.period}</span>
+      <div>
+        <h3 className="display text-3xl text-white transition-colors group-hover:text-[var(--accent)] sm:text-4xl">{job.company}</h3>
+        <p className="mt-1 text-white/60">{job.role}</p>
+      </div>
+      <p className="text-white/70 md:pt-2">{job.body}</p>
+    </div>
+  );
+}
+
+/** Experience starts collapsed on the current role; the full path unfolds on demand. */
 export function Experience() {
   const { t } = useLang();
-  const jobs = t.experience.jobs;
-  if (jobs.length === 0) return null;
+  const [open, setOpen] = useState(false);
+  const [current, ...rest] = t.experience.jobs;
+  if (!current) return null;
+
   return (
     <section className="relative bg-black py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-8">
         <p className="label text-[var(--accent)]">( {t.experience.label} )</p>
         <ol className="mt-8 divide-y divide-white/10 border-y border-white/10">
-          {jobs.map((job) => (
-            <li key={`${job.company}-${job.period}`} className="group grid gap-2 py-8 md:grid-cols-[10rem_1fr_1fr] md:gap-8">
-              <span className="label pt-2 text-white/50">{job.period}</span>
-              <div>
-                <h3 className="display text-3xl text-white transition-colors group-hover:text-[var(--accent)] sm:text-4xl">{job.company}</h3>
-                <p className="mt-1 text-white/60">{job.role}</p>
-              </div>
-              <p className="text-white/70 md:pt-2">{job.body}</p>
-            </li>
-          ))}
-        </ol>
-        <div className="mt-10 grid gap-6 md:grid-cols-[10rem_1fr] md:gap-8">
-          <span className="label pt-1 text-white/50">{t.experience.alsoLabel}</span>
-          <div>
-            <ul className="space-y-3">
-              {t.experience.also.map((item) => (
-                <li key={item} className="flex gap-3 text-white/75">
-                  <span className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--accent)]" />
-                  {item}
-                </li>
+          <li>
+            <JobRow job={current} />
+          </li>
+          <AnimatePresence initial={false}>
+            {open &&
+              rest.map((job, i) => (
+                <motion.li
+                  key={`${job.company}-${job.period}`}
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.45, delay: (open ? i : rest.length - 1 - i) * 0.05, ease: [0.22, 1, 0.36, 1] }}
+                  className="overflow-hidden"
+                >
+                  <JobRow job={job} />
+                </motion.li>
               ))}
-            </ul>
-            <p className="label mt-6 text-white/45">{t.experience.education}</p>
-          </div>
-        </div>
+          </AnimatePresence>
+        </ol>
+
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          aria-expanded={open}
+          className="group mt-6 flex items-center gap-3 text-sm text-white/70 transition-colors hover:text-white"
+        >
+          <span className="flex h-9 w-9 items-center justify-center rounded-full border border-white/20 transition-colors group-hover:border-[var(--accent)]">
+            <Plus size={16} className={`transition-transform duration-300 ${open ? "rotate-45" : ""}`} />
+          </span>
+          {open ? t.experience.close : `${t.experience.open} (+${rest.length})`}
+        </button>
+
+        <AnimatePresence initial={false}>
+          {open && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+              className="overflow-hidden"
+            >
+              <div className="grid gap-6 pt-10 md:grid-cols-[10rem_1fr] md:gap-8">
+                <span className="label pt-1 text-white/50">{t.experience.alsoLabel}</span>
+                <div>
+                  <ul className="space-y-3">
+                    {t.experience.also.map((item) => (
+                      <li key={item} className="flex gap-3 text-white/75">
+                        <span className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--accent)]" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="label mt-6 text-white/45">{t.experience.education}</p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </section>
   );
@@ -182,9 +234,10 @@ export function Contact() {
       />
       <div className="relative mx-auto max-w-7xl px-4 sm:px-8">
         <p className="label text-[var(--accent)]">( {t.contact.label} )</p>
-        <h2 className="display mt-4 text-[clamp(3.2rem,12vw,10rem)] leading-[0.86] text-white">
-          {t.contact.title1} <br />
-          <em className="text-[var(--accent)]">{t.contact.titleAccent}</em> {t.contact.title2}
+        {/* The final period is the magnet "home": every collected dot lands here. */}
+        <h2 className="display mt-4 max-w-5xl text-[clamp(2.9rem,8.5vw,7.5rem)] leading-[0.9] text-white">
+          {t.contact.title1} <em className="text-[var(--accent)]">{t.contact.titleAccent}</em>
+          <MagnetDot home />
         </h2>
         <div className="mt-10 flex flex-wrap gap-3">
           {email && (

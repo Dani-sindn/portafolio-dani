@@ -1,4 +1,5 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
+import { initSmoothScroll } from "./site/smoothScroll";
 import { PaletteProvider } from "./site/palette";
 import { LangProvider, LanguageModal } from "./site/i18n";
 import { usePath } from "./site/router";
@@ -10,6 +11,7 @@ import { Featured } from "./site/Featured";
 import { LabTeaser } from "./site/Playground";
 import { Contact, Experience, Nav } from "./site/Chrome";
 import { Booking } from "./site/Booking";
+import { MagnetField } from "./site/magnet/MagnetField";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 
@@ -23,12 +25,12 @@ function Home() {
     <main>
       <Hero />
       <Manifesto />
-      <Inspiration />
       <Capabilities />
       <Featured />
       <Experience />
       <LabTeaser />
       <Booking />
+      <Inspiration />
     </main>
   );
 }
@@ -46,6 +48,8 @@ function Routes() {
 }
 
 export default function App() {
+  useEffect(() => initSmoothScroll(), []);
+
   return (
     <LangProvider>
       <PaletteProvider>
@@ -56,6 +60,7 @@ export default function App() {
           <Suspense fallback={null}>
             <TalkButton />
           </Suspense>
+          <MagnetField />
           <LanguageModal />
         </div>
         {/* Vercel Web Analytics (cookieless) + Speed Insights. They only report once enabled in the Vercel dashboard. */}

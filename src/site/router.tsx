@@ -1,4 +1,5 @@
 import { forwardRef, useEffect, useState, type AnchorHTMLAttributes, type MouseEvent } from "react";
+import { scrollToTarget } from "./smoothScroll";
 
 // Tiny History-API router: the site only has "/", "/lab" and "/lab/:slug".
 
@@ -6,6 +7,8 @@ const EVENT = "dc:navigate";
 
 export function navigate(to: string) {
   const [path, hash] = to.split("#");
+  // Same page (just an anchor): glide there. New page: jump instantly.
+  const samePage = (path || "/") === window.location.pathname;
   // Same URL (e.g. tapping the same anchor twice): skip the history entry but still scroll.
   if (to !== window.location.pathname + window.location.hash) {
     window.history.pushState(null, "", to);
@@ -13,8 +16,7 @@ export function navigate(to: string) {
   }
   requestAnimationFrame(() => {
     const el = hash ? document.getElementById(hash) : null;
-    if (el) el.scrollIntoView({ behavior: "instant" as ScrollBehavior });
-    else if (path) window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
+    if (el || path) scrollToTarget(el, !samePage);
   });
 }
 
@@ -37,8 +39,6 @@ export const Link = forwardRef<HTMLAnchorElement, AnchorHTMLAttributes<HTMLAncho
   const handle = (e: MouseEvent<HTMLAnchorElement>) => {
     onClick?.(e);
     if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
-    // Same-page hash on home: let the browser scroll natively.
-    if (href.startsWith("/#") && window.location.pathname === "/") return;
     e.preventDefault();
     navigate(href);
   };
